@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --base: 240 243 241;
+  --panel: 255 255 255;
+  --line: 214 219 225;
+  --ink: 22 32 28;
+  --muted: 102 113 125;
+  --led: 16 163 106;     /* verde Lucrei */
+  --ledink: 6 95 60;
+  --good: 31 122 77;
+  --bad: 190 44 44;
+  --warn: 176 106 0;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --base: 20 24 29;
+    --panel: 30 36 43;
+    --line: 50 58 68;
+    --ink: 232 236 240;
+    --muted: 150 160 172;
+    --led: 52 199 138;
+    --ledink: 120 230 180;
+    --good: 86 196 138;
+    --bad: 240 110 110;
+    --warn: 236 170 70;
+    color-scheme: dark;
+  }
+}
+
+html, body, #root { min-height: 100%; }
+body { @apply bg-base text-ink font-sans antialiased; font-stretch: 100%; }
+.num { font-variant-numeric: tabular-nums; }
+.wide { font-stretch: 118%; }
+.led-strip { position: relative; }
+.led-strip::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px;
+  background: rgb(var(--led)); border-radius: 2px;
+  box-shadow: 0 0 10px 1px rgb(var(--led) / .55), 0 6px 18px 2px rgb(var(--led) / .25);
+}
+:focus-visible { outline: 2px solid rgb(var(--led)); outline-offset: 2px; }
+input, select, textarea { @apply bg-panel text-ink; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
