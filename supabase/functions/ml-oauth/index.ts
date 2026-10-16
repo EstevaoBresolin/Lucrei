@@ -15,6 +15,8 @@ Deno.serve(async (req) => {
   if (!st || Date.now() - new Date(st.created_at).getTime() > 15 * 60 * 1000) return erro('Link de conexão vencido. Clique em Conectar de novo.')
   try {
     const t = await trocarToken({ grant_type: 'authorization_code', code, redirect_uri: REDIRECT_URI })
+    // Sem refresh_token a conexão morre em 6 horas: o app do ML precisa do escopo offline_access.
+    if (!t.refresh_token) return erro('O aplicativo do Mercado Livre está sem a permissão "offline_access". Ative-a nas configurações do app no DevCenter do ML e conecte de novo.')
     // Uma conta do Mercado Livre só pode estar ligada a uma empresa do Lucrei.
     const { data: outra } = await db.from('ml_conta').select('empresa_id').eq('ml_user_id', t.user_id).neq('empresa_id', st.empresa_id).maybeSingle()
     if (outra) return erro('Esta conta do Mercado Livre já está conectada a outra empresa no Lucrei. Desconecte lá antes de conectar aqui.')

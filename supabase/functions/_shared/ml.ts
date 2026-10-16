@@ -44,8 +44,8 @@ export async function salvarTokens(db: SupabaseClient, empresa: string, t: Token
 export async function token(db: SupabaseClient, empresa: string): Promise<string> {
   const ler = async () => (await db.from('ml_conta').select('*').eq('empresa_id', empresa).maybeSingle()).data
   const c = await ler()
-  if (!c?.refresh_token) throw new Error('Mercado Livre não conectado')
-  if (c.access_token && new Date(c.expires_at).getTime() > Date.now()) return c.access_token
+  if (c?.access_token && new Date(c.expires_at).getTime() > Date.now()) return c.access_token
+  if (!c?.refresh_token) throw new Error('Conexão com o Mercado Livre expirou. Clique em Conectar de novo.')
   try {
     const t = await trocarToken({ grant_type: 'refresh_token', refresh_token: c.refresh_token })
     await salvarTokens(db, empresa, t)
