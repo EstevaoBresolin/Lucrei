@@ -1,0 +1,48 @@
+// Pontos de entrada do servidor: webhooks do ML e do Asaas (segurança e efeitos)
+import { ok, nota, secao, salvar, espera, SQL, KEYS_ } from './lib.mjs'
+const F = 'http://localhost:54321/functions/v1'
+secao('Webhook do Asaas')
+let r = await fetch(F + '/asaas-webhook', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 'x', event: 'PAYMENT_RECEIVED', payment: { subscription: 'sub_x', dueDate: '2026-10-01' } }) })
+ok(r.status === 401, 'Aviso sem token é recusado (401)', String(r.status))
+r = await fetch(F + '/asaas-webhook', { method: 'POST', headers: { 'Content-Type': 'application/json', 'asaas-access-token': 'errado' }, body: '{}' })
+ok(r.status === 401, 'Aviso com token errado é recusado (401)', String(r.status))
+const emp = SQL("select id||'|'||coalesce(asaas_assinatura_id,'') from empresa where nome='Loja do Cliente Teste'")
+if (emp) {
+  const [id] = emp.split('|'); const R = Date.now()
+  SQL(`update empresa set asaas_assinatura_id='sub_teste', status='ativa', teste_ate=now() - interval '40 days', pago_ate=null where id='${id}'`)
+  const h = { 'Content-Type': 'application/json', 'asaas-access-token': KEYS_.ASAAS_WEBHOOK_TOKEN }
+  r = await fetch(F + '/asaas-webhook', { method: 'POST', headers: h, body: JSON.stringify({ id: 'evt_venc' + R, event: 'PAYMENT_OVERDUE', payment: { subscription: 'sub_teste', dueDate: '2026-10-05', invoiceUrl: 'http://fatura', status: 'OVERDUE' } }) })
+  ok(r.status === 200 && SQL(`select status from empresa where id='${id}'`) === 'atrasada', 'Cobrança vencida marca a empresa como atrasada')
+  SQL(`update empresa set pago_ate = current_date - 10 where id='${id}'`)
+  ok(SQL(`select empresa_liberada('${id}')`) === 'f', 'Vencida há mais de 3 dias: fica só leitura')
+  SQL(`update empresa set pago_ate = null where id='${id}'`)
+  r = await fetch(F + '/asaas-webhook', { method: 'POST', headers: h, body: JSON.stringify({ id: 'evt_pag' + R, event: 'PAYMENT_CONFIRMED', payment: { subscription: 'sub_teste', dueDate: '2026-10-05', status: 'CONFIRMED' } }) })
+  ok(SQL(`select status||' '||pago_ate from empresa where id='${id}'`) === 'ativa 2026-11-05', 'Pagamento confirmado libera até o próximo mês', SQL(`select status||' '||pago_ate from empresa where id='${id}'`))
+  r = await fetch(F + '/asaas-webhook', { method: 'POST', headers: h, body: JSON.stringify({ id: 'evt_pag' + R, event: 'PAYMENT_CONFIRMED', payment: { subscription: 'sub_teste', dueDate: '2026-11-05', status: 'CONFIRMED' } }) })
+  ok(SQL(`select pago_ate from empresa where id='${id}'`) === '2026-11-05', 'Aviso repetido (mesmo id) não é processado duas vezes')
+  r = await fetch(F + '/asaas-webhook', { method: 'POST', headers: h, body: JSON.stringify({ id: 'evt_del' + R, event: 'SUBSCRIPTION_DELETED', subscription: { id: 'sub_teste', externalReference: id } }) })
+  ok(SQL(`select status||' '||coalesce(asaas_assinatura_id,'-') from empresa where id='${id}'`) === 'cancelada -', 'Assinatura removida no Asaas cancela no Lucrei')
+  ok(SQL(`select empresa_liberada('${id}')`) === 't', 'Cancelada continua liberada até a data paga')
+} else nota('Webhook do Asaas', 'empresa da jornada 01 não encontrada')
+
+secao('Webhook do Mercado Livre')
+r = await fetch(F + '/ml-webhook', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 999, topic: 'orders_v2', resource: '/orders/5001' }) })
+ok(r.status === 200, 'Aviso de pedido do ML é aceito', String(r.status))
+await espera(4000)
+ok(SQL('select count(*) from venda where ml_order_id=5001') === '1', 'Aviso de pedido já lançado não duplica a venda')
+r = await fetch(F + '/ml-webhook', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 123456789, topic: 'orders_v2', resource: '/orders/5001' }) })
+ok(r.status === 200 && SQL('select count(*) from venda where ml_order_id=5001') === '1', 'Aviso de conta do ML desconhecida é ignorado')
+r = await fetch(F + '/ml-sync', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: KEYS_.ANON_KEY, Authorization: 'Bearer ' + KEYS_.ANON_KEY }, body: JSON.stringify({ acao: 'sincronizar' }) })
+ok(r.status === 403, 'Sincronizar sem login é recusado', String(r.status))
+r = await fetch(F + '/assinatura', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: KEYS_.ANON_KEY, Authorization: 'Bearer ' + KEYS_.ANON_KEY }, body: JSON.stringify({ acao: 'cancelar' }) })
+ok(r.status === 403, 'Mexer na assinatura sem login é recusado', String(r.status))
+salvar('/tmp/claude-0/e2e/r09.json')
+secao('Webhook do Asaas — assinatura antiga')
+{
+  const id = SQL("select id from empresa where nome='Loja do Cliente Teste'"); const R = Date.now()
+  SQL(`update empresa set asaas_assinatura_id='sub_nova', status='ativa' where id='${id}'`)
+  const h = { 'Content-Type': 'application/json', 'asaas-access-token': KEYS_.ASAAS_WEBHOOK_TOKEN }
+  await fetch(F + '/asaas-webhook', { method: 'POST', headers: h, body: JSON.stringify({ id: 'evt_velha' + R, event: 'SUBSCRIPTION_DELETED', subscription: { id: 'sub_velha', externalReference: id } }) })
+  ok(SQL(`select status||' '||asaas_assinatura_id from empresa where id='${id}'`) === 'ativa sub_nova', 'Aviso atrasado de assinatura antiga não cancela a nova')
+}
+salvar('/tmp/claude-0/e2e/r09.json')

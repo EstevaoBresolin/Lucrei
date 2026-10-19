@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { supabase, erroMsg } from '../lib/supabase'
 import { useLoad } from '../lib/useQuery'
-import { dataBR, dataHoraBR, money, parseNum, percent, qty } from '../lib/fmt'
+import { dataBR, dataHoraBR, hoje, money, parseNum, percent, qty } from '../lib/fmt'
 import { STATUS_VENDA, type Venda } from '../lib/types'
 import { Badge, Button, ErrorBox, Field, Input, Loading, Modal, NumInput, PageHeader, Panel, Select, Table, Textarea, useToast } from '../components/ui'
 import Composicao from '../components/Composicao'
@@ -116,7 +116,7 @@ export default function VendaDetalhe() {
       </Modal>
 
       <Modal open={modal === 'devolver'} onClose={() => setModal(null)} title={`Devolução da venda #${v.numero}`}
-        footer={<><Button onClick={() => setModal(null)}>Voltar</Button><Button variant="primary" disabled={busy} onClick={() => run(() => supabase.rpc('devolver_venda', { p_id: v.id, p_destino: destino, p_motivo: motivo }), 'Devolução registrada.')}>Registrar devolução</Button></>}>
+        footer={<><Button onClick={() => setModal(null)}>Voltar</Button><Button variant="primary" disabled={busy || !motivo.trim()} onClick={() => run(() => supabase.rpc('devolver_venda', { p_id: v.id, p_destino: destino, p_motivo: motivo }), 'Devolução registrada.')}>Registrar devolução</Button></>}>
         <div className="flex flex-col gap-4">
           <Field label="O que aconteceu com o produto devolvido?">
             <Select value={destino} onChange={(e) => setDestino(e.target.value as 'estoque' | 'perda')}>
@@ -130,10 +130,10 @@ export default function VendaDetalhe() {
       </Modal>
 
       <Modal open={modal === 'custos'} onClose={() => setModal(null)} title={`Editar venda #${v.numero}`} wide
-        footer={<><Button onClick={() => setModal(null)}>Voltar</Button><Button variant="primary" disabled={busy} onClick={() => run(() => supabase.rpc('atualizar_custos_venda', { p_id: v.id, p: { ...Object.fromEntries(Object.entries(c).map(([k, x]) => [k, parseNum(x)])), ...d } }), 'Venda atualizada e lucro recalculado.')}>Salvar e recalcular</Button></>}>
+        footer={<><Button onClick={() => setModal(null)}>Voltar</Button><Button variant="primary" disabled={busy} onClick={() => { if (!d.data || d.data > hoje()) return setErr('A data da venda não pode ficar vazia nem no futuro.'); if (parseNum(c.perc_taxa) > 100 || parseNum(c.perc_imposto) > 100) return setErr('Taxa e imposto precisam ficar entre 0 e 100%.'); run(() => supabase.rpc('atualizar_custos_venda', { p_id: v.id, p: { ...Object.fromEntries(Object.entries(c).map(([k, x]) => [k, parseNum(x)])), ...d } }), 'Venda atualizada e lucro recalculado.') }}>Salvar e recalcular</Button></>}>
         <p className="mb-4 text-sm text-muted">Produtos e quantidades não mudam aqui, porque já baixaram o estoque. Se o item estiver errado, cancele a venda e lance de novo.</p>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Data"><Input type="date" value={d.data} onChange={(e) => setD({ ...d, data: e.target.value })} /></Field>
+          <Field label="Data"><Input type="date" max={hoje()} value={d.data} onChange={(e) => setD({ ...d, data: e.target.value })} /></Field>
           <Field label="Nº do pedido no canal"><Input value={d.pedido_externo} onChange={(e) => setD({ ...d, pedido_externo: e.target.value })} /></Field>
           <Field label="Cliente">
             <Select value={d.cliente_id} onChange={(e) => setD({ ...d, cliente_id: e.target.value })}>

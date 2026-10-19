@@ -188,6 +188,10 @@ function NovaCompra({ ini, onClose, onSaved }: { ini: Ini | null; onClose: () =>
   async function salvar() {
     const validos = itens.filter((i) => i.item && parseNum(i.qtd) > 0)
     if (validos.length === 0) return setErro('Adicione pelo menos um item com quantidade.')
+    if (itens.some((i) => i.item && !(parseNum(i.qtd) > 0))) return setErro('Informe a quantidade de cada item (ou remova a linha).')
+    if (validos.some((i) => !(parseNum(i.preco) > 0))) return setErro('Informe o preço de cada item. Sem preço o item entra com custo zero e derruba o custo médio.')
+    if (!f.data) return setErro('Informe a data da compra.')
+    if (total < 0) return setErro('O desconto não pode ser maior que o total da compra.')
     setBusy(true); setErro(null)
     const cab = {
       fornecedor_id: f.fornecedor_id || null, data: f.data, frete: parseNum(f.frete), outras_despesas: parseNum(f.outras),

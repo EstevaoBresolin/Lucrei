@@ -56,9 +56,13 @@ export const Select = ({ className, ...p }: SelectHTMLAttributes<HTMLSelectEleme
 export const Textarea = ({ className, ...p }: TextareaHTMLAttributes<HTMLTextAreaElement>) => (
   <textarea {...p} className={cx(inputCls, 'w-full h-auto min-h-20 py-2', className)} />
 )
-/** Campo numérico que aceita vírgula. */
-export function NumInput({ value, onChange, className, ...p }: Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> & { value: string; onChange: (v: string) => void }) {
-  return <Input {...p} inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value.replace(/[^\d.,-]/g, ''))} className={cx('num text-right', className)} />
+/** Campo numérico que aceita vírgula. Só aceita negativo quando `negativo` (ex.: saldo de conta). */
+export function NumInput({ value, onChange, className, negativo, ...p }: Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> & { value: string; onChange: (v: string) => void; negativo?: boolean }) {
+  const limpar = (t: string) => {
+    const s = t.replace(negativo ? /[^\d.,-]/g : /[^\d.,]/g, '')
+    return negativo ? s.replace(/(?!^)-/g, '') : s
+  }
+  return <Input {...p} inputMode="decimal" value={value} onChange={(e) => onChange(limpar(e.target.value))} className={cx('num text-right', className)} />
 }
 
 /* ---------------- Estrutura ---------------- */

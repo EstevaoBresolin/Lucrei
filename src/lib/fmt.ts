@@ -39,3 +39,38 @@ export const dataHoraBR = (iso?: string | null) =>
 
 /** Nome para comparar duplicados: ignora maiúsculas, acentos e espaços extras. */
 export const normNome = (s: string) => s.trim().replace(/\s+/g, ' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+
+/* ---------- Máscaras ---------- */
+const soDigitos = (s: string) => s.replace(/\D/g, '')
+/** CPF (000.000.000-00) ou CNPJ (00.000.000/0000-00), conforme a quantidade de dígitos. */
+export function mascaraDoc(v: string) {
+  const d = soDigitos(v).slice(0, 14)
+  if (d.length <= 11) return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+  return d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2')
+}
+/** Telefone/WhatsApp com DDD: (54) 99999-9999 ou (54) 3222-1111. Aceita +55 na frente. */
+export function mascaraTel(v: string) {
+  let d = soDigitos(v)
+  if (d.length > 11 && d.startsWith('55')) d = d.slice(2)
+  d = d.slice(0, 11)
+  if (d.length <= 2) return d ? `(${d}` : ''
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+}
+/** Valida CPF ou CNPJ pelos dígitos verificadores. */
+export function docValido(v: string) {
+  const d = soDigitos(v)
+  if (/^(\d)\1+$/.test(d)) return false
+  if (d.length === 11) {
+    const dv = (n: number) => { let s = 0; for (let i = 0; i < n; i++) s += Number(d[i]) * (n + 1 - i); const r = (s * 10) % 11; return r === 10 ? 0 : r }
+    return dv(9) === Number(d[9]) && dv(10) === Number(d[10])
+  }
+  if (d.length === 14) {
+    const dv = (n: number) => { const p = n === 12 ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2] : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]; const s = p.reduce((a, x, i) => a + x * Number(d[i]), 0); const r = s % 11; return r < 2 ? 0 : 11 - r }
+    return dv(12) === Number(d[12]) && dv(13) === Number(d[13])
+  }
+  return false
+}
+export const telValido = (v: string) => { const d = soDigitos(v); return d.length === 10 || d.length === 11 }
+export const emailValido = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim())

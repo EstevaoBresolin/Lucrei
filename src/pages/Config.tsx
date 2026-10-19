@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Copy, Link2, Pencil, Plus, Trash2 } from 'lucide-react'
 import { supabase, erroMsg } from '../lib/supabase'
 import { useLoad } from '../lib/useQuery'
-import { dataBR, hoje, money, parseNum, qty } from '../lib/fmt'
+import { dataBR, hoje, money, parseNum, qty, emailValido } from '../lib/fmt'
 import type { Categoria } from '../lib/types'
 import { Badge, BotaoExcluir, Button, ErrorBox, Field, Input, Loading, Modal, NumInput, PageHeader, Panel, Select, Table, useConfirm, useToast } from '../components/ui'
 import { PAPEL, URL_APP, useAuth, type Modulo, type Papel, type TipoNegocio } from '../lib/auth'
@@ -40,6 +40,8 @@ function Canais() {
   async function salvarTaxa() {
     if (!taxa) return
     if (!taxa.perfil.trim()) return setErro('Dê um nome ao tipo de anúncio.')
+    if (parseNum(taxa.perc) > 100) return setErro('A taxa precisa ficar entre 0 e 100%.')
+    if (!taxa.desde) return setErro('Informe a partir de quando a taxa vale.')
     const row = { canal_id: taxa.canal_id, perfil: taxa.perfil.trim(), perc_taxa: parseNum(taxa.perc), tarifa_fixa: parseNum(taxa.fixa), tarifa_ate_preco: taxa.ate.trim() ? parseNum(taxa.ate) : null, frete_padrao: parseNum(taxa.frete), vigente_desde: taxa.desde, ativo: taxa.ativo }
     const { error } = taxa.id ? await supabase.from('canal_taxa').update(row).eq('id', taxa.id) : await supabase.from('canal_taxa').insert(row)
     if (error) return setErro(erroMsg(error))
@@ -169,20 +171,20 @@ function Empresa() {
     <Panel title="Empresa">
       <div className="grid gap-5 p-4 lg:grid-cols-2">
         <div className="flex flex-col gap-4">
-          <Field label="Nome"><Input value={v('nome', data.nome)} onChange={(e) => setEd({ ...ed, nome: e.target.value })} onBlur={() => ed.nome?.trim() && ed.nome.trim() !== data.nome && salvar({ nome: ed.nome.trim() })} /></Field>
+          <Field label="Nome"><Input value={v('nome', data.nome)} onChange={(e) => setEd({ ...ed, nome: e.target.value })} onBlur={() => { if (ed.nome === undefined) return; if (!ed.nome.trim()) { toast('Dê um nome à empresa.', 'bad'); setEd(({ nome: _, ...r }) => r); return } if (ed.nome.trim() !== data.nome) salvar({ nome: ed.nome.trim() }) }} /></Field>
           <Field label="Como a empresa trabalha">
             <Select value={data.tipo_negocio} onChange={(e) => salvar({ tipo_negocio: e.target.value })}>
               <option value="revenda">Compra pronto e revende</option><option value="fabricacao">Fabrica o que vende</option><option value="misto">Os dois</option>
             </Select>
           </Field>
           <Field label="Imposto sobre a venda (%)" hint="Ex.: alíquota do Simples. Vale para as próximas vendas.">
-            <NumInput value={v('imposto_perc', data.imposto_perc)} onChange={(x) => setEd({ ...ed, imposto_perc: x })} onBlur={() => ed.imposto_perc !== undefined && salvar({ imposto_perc: parseNum(ed.imposto_perc) })} className="max-w-32" />
+            <NumInput value={v('imposto_perc', data.imposto_perc)} onChange={(x) => setEd({ ...ed, imposto_perc: x })} onBlur={() => { if (ed.imposto_perc === undefined) return; const n = parseNum(ed.imposto_perc); if (n > 100) { toast('O imposto precisa ficar entre 0 e 100%.', 'bad'); setEd(({ imposto_perc: _, ...r }) => r); return } salvar({ imposto_perc: n }) }} className="max-w-32" />
           </Field>
           <Field label="Avisar sobre vendas abertas há mais de (dias)">
             <NumInput value={v('dias', data.dias_alerta_venda_aberta)} onChange={(x) => setEd({ ...ed, dias: x })} onBlur={() => ed.dias !== undefined && salvar({ dias_alerta_venda_aberta: Math.max(1, Math.round(parseNum(ed.dias))) })} className="max-w-32" />
           </Field>
           <Field label="E-mail para avisos" hint="Perguntas novas do Mercado Livre chegam aqui.">
-            <Input type="email" value={v('email', data.email_avisos)} onChange={(e) => setEd({ ...ed, email: e.target.value })} onBlur={() => ed.email !== undefined && salvar({ email_avisos: ed.email.trim() || null })} />
+            <Input type="email" value={v('email', data.email_avisos)} onChange={(e) => setEd({ ...ed, email: e.target.value })} onBlur={() => { if (ed.email === undefined) return; const e = ed.email.trim(); if (e && !emailValido(e)) { toast('E-mail inválido.', 'bad'); return } salvar({ email_avisos: e || null }) }} />
           </Field>
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" className="mt-1" checked={data.permite_estoque_negativo} onChange={(e) => salvar({ permite_estoque_negativo: e.target.checked })} />

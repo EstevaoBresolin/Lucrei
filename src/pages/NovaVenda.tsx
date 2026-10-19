@@ -114,9 +114,13 @@ export default function NovaVenda() {
     setErro(null)
     const itens = linhas.filter((l) => l.produto_id).map((l) => ({ produto_id: l.produto_id, quantidade: parseNum(l.quantidade), preco_unit: parseNum(l.preco) }))
     if (!taxa) return setErro('Escolha o canal da venda.')
+    if (!data) return setErro('Informe a data da venda.')
+    if (data > hoje()) return setErro('A data da venda não pode ser no futuro.')
     if (itens.length === 0) return setErro('Adicione pelo menos um produto.')
     if (itens.some((i) => i.quantidade <= 0)) return setErro('A quantidade de cada item precisa ser maior que zero.')
     if (itens.some((i) => i.preco_unit <= 0)) return setErro('Informe o preço de cada item.')
+    if (parseNum(percTaxa) > 100 || parseNum(imposto) > 100) return setErro('Taxa do canal e imposto precisam ficar entre 0 e 100%.')
+    if (parseNum(desconto) > calc.bruta) return setErro('O desconto não pode ser maior que o valor dos produtos.')
     if (calc.lucro < 0 && !confirmarPrejuizo) { setConfirmarPrejuizo(true); return }
     setSalvando(true)
     const { data: id, error } = await supabase.rpc('registrar_venda', {
@@ -166,7 +170,7 @@ export default function NovaVenda() {
                   ))}
                 </Select>
               </Field>
-              <Field label="Data"><Input type="date" value={data} onChange={(e) => setData(e.target.value)} /></Field>
+              <Field label="Data"><Input type="date" max={hoje()} value={data} onChange={(e) => setData(e.target.value)} /></Field>
             </div>
           </Panel>
 

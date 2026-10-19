@@ -33,6 +33,7 @@ export default function Financeiro() {
   async function salvar() {
     if (!nova) return
     if (!nova.descricao.trim() || parseNum(nova.valor) <= 0) return setErro('Informe a descrição e o valor.')
+    if (!nova.data) return setErro('Informe a data da despesa.')
     const row = { data: nova.data, descricao: nova.descricao.trim(), valor: parseNum(nova.valor), categoria_id: nova.categoria_id || null, recorrente: nova.recorrente, forma_pagamento: nova.forma_pagamento || null, conta_id: nova.conta_id || null }
     const { error } = nova.id ? await supabase.from('despesa').update(row).eq('id', nova.id) : await supabase.from('despesa').insert(row)
     if (error) return setErro(erroMsg(error))

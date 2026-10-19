@@ -177,7 +177,7 @@ function Comecar({ onPronto }: { onPronto: () => void }) {
           <p className="text-muted">Informe quanto tem <b>hoje</b> disponível na conta. Daqui para frente o sistema soma o que o Mercado Livre liberar e as vendas fora do ML, e desconta despesas e compras.</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nome da conta"><Input value={nome} onChange={(e) => setNome(e.target.value)} /></Field>
-            <Field label="Saldo disponível hoje (R$)" hint="No app do Mercado Pago: saldo disponível."><NumInput value={saldo} onChange={setSaldo} /></Field>
+            <Field label="Saldo disponível hoje (R$)" hint="No app do Mercado Pago: saldo disponível."><NumInput negativo value={saldo} onChange={setSaldo} /></Field>
           </div>
           <ErrorBox msg={erro} />
           <div><Button variant="primary" onClick={criar}>Começar</Button></div>
@@ -199,6 +199,7 @@ function MovModal({ mov, contas, onClose, onSalvo }: { mov: Mov; contas: Conta[]
     const valor = parseNum(f.valor)
     if (!(valor > 0)) return setErro('Informe o valor.')
     if (!f.descricao.trim()) return setErro('Descreva o lançamento (ex.: retirada de lucro, aporte, tarifa do banco).')
+    if (!f.data) return setErro('Informe a data.')
     if (transf) {
       // Transferência: muda valor, data e descrição nas duas pontas, mantendo o sinal de cada uma.
       const { data: pontas, error } = await supabase.from('movimento_financeiro').select('id,valor').eq('transferencia', f.transferencia!)
@@ -257,6 +258,7 @@ function TransfModal({ contas, onClose, onSalvo }: { contas: Conta[]; onClose: (
     const valor = parseNum(f.valor)
     if (!(valor > 0)) return setErro('Informe o valor.')
     if (!f.para || f.de === f.para) return setErro('Escolha duas contas diferentes.')
+    if (!f.data) return setErro('Informe a data.')
     const nome = (id: string) => contas.find((c) => c.id === id)?.nome ?? ''
     const descricao = f.descricao.trim() || `Transferência ${nome(f.de)} → ${nome(f.para)}`
     const transferencia = crypto.randomUUID()
@@ -304,7 +306,7 @@ function AjusteModal({ conta, contas, onClose, onSalvo }: { conta: Conta | null;
         <div className="flex flex-col gap-4 text-sm">
           {contas.length > 1 && <Field label="Conta"><Select value={c.id} onChange={(e) => setContaId(e.target.value)}>{contas.map((x) => <option key={x.id} value={x.id}>{x.nome}</option>)}</Select></Field>}
           <p>O sistema calcula <b className="num">{money(c.saldo)}</b> em {c.nome}.</p>
-          <Field label="Saldo disponível de verdade agora (R$)" hint={c.recebe_ml ? 'No app do Mercado Pago, o saldo disponível (não conta o que está a liberar).' : undefined}><NumInput value={real} onChange={setReal} /></Field>
+          <Field label="Saldo disponível de verdade agora (R$)" hint={c.recebe_ml ? 'No app do Mercado Pago, o saldo disponível (não conta o que está a liberar).' : undefined}><NumInput negativo value={real} onChange={setReal} /></Field>
           {real.trim() !== '' && (dif === 0 ? <p className="text-good">Confere certinho.</p>
             : <p className="rounded-box bg-warn/10 px-3 py-2 text-warn">Diferença de <b className="num">{dif > 0 ? '+' : '−'} {money(Math.abs(dif))}</b>. Será lançado um ajuste com esse valor. Se a diferença for um gasto esquecido, prefira lançá-lo em Despesas.</p>)}
         </div>
@@ -324,6 +326,8 @@ function ContasModal({ todas, onClose }: { todas: Conta[]; onClose: () => void }
   async function salvar() {
     if (!ed) return
     if (!ed.nome.trim()) return setErro('Dê um nome à conta.')
+    if (!ed.saldo_em) return setErro('Informe a data do saldo inicial.')
+    if (lista.some((c) => c.id !== ed.id && c.nome.trim().toLowerCase() === ed.nome.trim().toLowerCase())) return setErro('Já existe uma conta com esse nome.')
     setErro(null)
     // Só uma conta pode ser a padrão e só uma recebe o dinheiro do ML.
     if (ed.padrao) await supabase.from('conta_financeira').update({ padrao: false }).neq('id', ed.id ?? '00000000-0000-0000-0000-000000000000').eq('padrao', true)
@@ -349,7 +353,7 @@ function ContasModal({ todas, onClose }: { todas: Conta[]; onClose: () => void }
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Nome" className="sm:col-span-2"><Input value={ed.nome} onChange={(e) => setEd({ ...ed, nome: e.target.value })} placeholder="Banco, Caixa…" /></Field>
-          <Field label="Saldo inicial (R$)" hint="Quanto tinha na conta no fim do dia ao lado."><NumInput value={ed.saldo_inicial} onChange={(v) => setEd({ ...ed, saldo_inicial: v })} /></Field>
+          <Field label="Saldo inicial (R$)" hint="Quanto tinha na conta no fim do dia ao lado."><NumInput negativo value={ed.saldo_inicial} onChange={(v) => setEd({ ...ed, saldo_inicial: v })} /></Field>
           <Field label="Saldo em" hint="Só o que acontecer depois desta data mexe no saldo."><Input type="date" value={ed.saldo_em} onChange={(e) => setEd({ ...ed, saldo_em: e.target.value })} /></Field>
           <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" checked={ed.padrao} onChange={(e) => setEd({ ...ed, padrao: e.target.checked })} /> Conta padrão (despesas, compras e vendas sem conta escolhida)</label>
           <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" checked={ed.recebe_ml} onChange={(e) => setEd({ ...ed, recebe_ml: e.target.checked })} /> Recebe o dinheiro liberado pelo Mercado Livre</label>

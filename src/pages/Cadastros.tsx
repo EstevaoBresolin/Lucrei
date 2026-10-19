@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { supabase, erroMsg } from '../lib/supabase'
 import { useLoad } from '../lib/useQuery'
+import { docValido, emailValido, mascaraDoc, mascaraTel, normNome, telValido } from '../lib/fmt'
 import type { Cliente, Fornecedor } from '../lib/types'
 import { Badge, BotaoExcluir, Button, Empty, ErrorBox, Field, Input, Loading, Modal, PageHeader, Panel, Table, Textarea, useConfirm, useToast } from '../components/ui'
 import { useAuth } from '../lib/auth'
@@ -35,7 +36,14 @@ function Fornecedores() {
   const [err, setErr] = useState<string | null>(null)
   async function salvar() {
     if (!ed?.nome?.trim()) return setErr('Informe o nome.')
-    const row = { nome: ed.nome.trim(), documento: ed.documento || null, telefone: ed.telefone || null, whatsapp: ed.whatsapp || null, email: ed.email || null, prazo_entrega_dias: ed.prazo_entrega_dias || null, observacoes: ed.observacoes || null, ativo: ed.ativo ?? true }
+    if (ed.documento && !docValido(ed.documento)) return setErr('CNPJ ou CPF inválido. Confira os números.')
+    if (ed.whatsapp && !telValido(ed.whatsapp)) return setErr('WhatsApp incompleto: informe DDD + número.')
+    if (ed.telefone && !telValido(ed.telefone)) return setErr('Telefone incompleto: informe DDD + número.')
+    if (ed.email && !emailValido(ed.email)) return setErr('E-mail inválido.')
+    if (ed.prazo_entrega_dias != null && ed.prazo_entrega_dias > 365) return setErr('Prazo de entrega muito alto (máximo 365 dias).')
+    const igual = (data ?? []).find((x) => x.id !== ed.id && normNome(x.nome) === normNome(ed.nome!))
+    if (igual) return setErr(`Já existe um fornecedor chamado "${igual.nome}".`)
+    const row = { nome: ed.nome.trim(), documento: ed.documento || null, telefone: ed.telefone || null, whatsapp: ed.whatsapp || null, email: ed.email?.trim() || null, prazo_entrega_dias: ed.prazo_entrega_dias || null, observacoes: ed.observacoes || null, ativo: ed.ativo ?? true }
     const r = ed.id ? await supabase.from('fornecedor').update(row).eq('id', ed.id) : await supabase.from('fornecedor').insert(row)
     if (r.error) return setErr(erroMsg(r.error))
     toast('Fornecedor salvo.'); setEd(null); recarregar()
@@ -66,10 +74,10 @@ function Fornecedores() {
         {ed && (
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nome" className="sm:col-span-2"><Input value={ed.nome ?? ''} onChange={(e) => setEd({ ...ed, nome: e.target.value })} /></Field>
-            <Field label="CNPJ ou CPF"><Input value={ed.documento ?? ''} onChange={(e) => setEd({ ...ed, documento: e.target.value })} /></Field>
+            <Field label="CNPJ ou CPF"><Input inputMode="numeric" value={ed.documento ?? ''} onChange={(e) => setEd({ ...ed, documento: mascaraDoc(e.target.value) })} placeholder="00.000.000/0000-00" /></Field>
             <Field label="Prazo de entrega (dias)"><Input inputMode="numeric" value={ed.prazo_entrega_dias ?? ''} onChange={(e) => setEd({ ...ed, prazo_entrega_dias: Number(e.target.value.replace(/\D/g, '')) || null })} /></Field>
-            <Field label="WhatsApp" hint="Com DDD. Usado no botão de pedido."><Input inputMode="tel" value={ed.whatsapp ?? ''} onChange={(e) => setEd({ ...ed, whatsapp: e.target.value })} placeholder="54 99999-9999" /></Field>
-            <Field label="Telefone"><Input inputMode="tel" value={ed.telefone ?? ''} onChange={(e) => setEd({ ...ed, telefone: e.target.value })} /></Field>
+            <Field label="WhatsApp" hint="Com DDD. Usado no botão de pedido."><Input inputMode="tel" value={ed.whatsapp ?? ''} onChange={(e) => setEd({ ...ed, whatsapp: mascaraTel(e.target.value) })} placeholder="(54) 99999-9999" /></Field>
+            <Field label="Telefone"><Input inputMode="tel" value={ed.telefone ?? ''} onChange={(e) => setEd({ ...ed, telefone: mascaraTel(e.target.value) })} placeholder="(54) 3222-1111" /></Field>
             <Field label="E-mail" className="sm:col-span-2"><Input type="email" value={ed.email ?? ''} onChange={(e) => setEd({ ...ed, email: e.target.value })} /></Field>
             <Field label="Observações" className="sm:col-span-2"><Textarea value={ed.observacoes ?? ''} onChange={(e) => setEd({ ...ed, observacoes: e.target.value })} rows={2} /></Field>
             {ed.id && <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={ed.ativo ?? true} onChange={(e) => setEd({ ...ed, ativo: e.target.checked })} /> Ativo</label>}
@@ -91,6 +99,8 @@ function Clientes() {
   const [err, setErr] = useState<string | null>(null)
   async function salvar() {
     if (!ed?.nome?.trim()) return setErr('Informe o nome.')
+    if (ed.whatsapp && !telValido(ed.whatsapp)) return setErr('WhatsApp incompleto: informe DDD + número.')
+    if (ed.telefone && !telValido(ed.telefone)) return setErr('Telefone incompleto: informe DDD + número.')
     const row = { nome: ed.nome.trim(), telefone: ed.telefone || null, whatsapp: ed.whatsapp || null, cidade: ed.cidade || null, origem: ed.origem || null, observacoes: ed.observacoes || null }
     const r = ed.id ? await supabase.from('cliente').update(row).eq('id', ed.id) : await supabase.from('cliente').insert(row)
     if (r.error) return setErr(erroMsg(r.error))
@@ -131,8 +141,8 @@ function Clientes() {
         {ed && (
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nome" className="sm:col-span-2"><Input value={ed.nome ?? ''} onChange={(e) => setEd({ ...ed, nome: e.target.value })} /></Field>
-            <Field label="WhatsApp"><Input inputMode="tel" value={ed.whatsapp ?? ''} onChange={(e) => setEd({ ...ed, whatsapp: e.target.value })} /></Field>
-            <Field label="Telefone"><Input inputMode="tel" value={ed.telefone ?? ''} onChange={(e) => setEd({ ...ed, telefone: e.target.value })} /></Field>
+            <Field label="WhatsApp"><Input inputMode="tel" value={ed.whatsapp ?? ''} onChange={(e) => setEd({ ...ed, whatsapp: mascaraTel(e.target.value) })} placeholder="(54) 99999-9999" /></Field>
+            <Field label="Telefone"><Input inputMode="tel" value={ed.telefone ?? ''} onChange={(e) => setEd({ ...ed, telefone: mascaraTel(e.target.value) })} placeholder="(54) 3222-1111" /></Field>
             <Field label="Cidade" className="sm:col-span-2"><Input value={ed.cidade ?? ''} onChange={(e) => setEd({ ...ed, cidade: e.target.value })} placeholder="Caxias do Sul" /></Field>
             <Field label="Como conheceu" className="sm:col-span-2">
               <Input list="origens" value={ed.origem ?? ''} onChange={(e) => setEd({ ...ed, origem: e.target.value })} />

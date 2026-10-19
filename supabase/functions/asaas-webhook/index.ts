@@ -23,13 +23,18 @@ Deno.serve(async (req) => {
   if (!assinatura) return ok() // cobrança avulsa: não é do Lucrei
 
   let { data: emp } = await db.from('empresa').select('id').eq('asaas_assinatura_id', assinatura).maybeSingle()
-  if (!emp && sub?.externalReference) emp = (await db.from('empresa').select('id').eq('id', sub.externalReference).maybeSingle()).data
+  if (!emp && sub?.externalReference) {
+    const { data: e } = await db.from('empresa').select('id, asaas_assinatura_id').eq('id', sub.externalReference).maybeSingle()
+    // Aviso atrasado de uma assinatura antiga não mexe na assinatura nova da empresa
+    if (e && (!e.asaas_assinatura_id || e.asaas_assinatura_id === assinatura)) emp = { id: e.id }
+  }
   if (!emp) return ok()
 
   // Cada evento é processado uma vez só (o Asaas pode reenviar)
   if (ev.id) {
     const { error } = await db.from('asaas_evento').insert({ id: ev.id, evento: ev.event, empresa_id: emp.id })
-    if (error) return ok()
+    if (error?.code === '23505') return ok() // já processado
+    if (error) console.error('asaas_evento', error.message) // registra, mas processa o aviso mesmo assim
   }
 
   let p: Record<string, unknown> | null = null
