@@ -100,9 +100,6 @@ export default function Landing() {
       {/* Hero */}
       <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-12 sm:px-6 md:grid-cols-[1.1fr_1fr] md:pb-24 md:pt-20">
         <div>
-          <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-panel px-3 py-1 text-xs font-medium text-muted">
-            <span className="h-1.5 w-1.5 rounded-full bg-led shadow-[0_0_8px_rgb(var(--led))]" /> Para quem vende no Mercado Livre
-          </p>
           <h1 className="wide text-[38px] font-extrabold leading-[1.05] tracking-tight sm:text-5xl md:text-[56px]">
             Você vende bem.<br />Mas <span className="text-ledink">quanto sobra</span>?
           </h1>
