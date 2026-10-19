@@ -70,7 +70,7 @@ ok(SQL(`select count(*) from categoria where nome='Luminárias LED'`) === '0', '
 
 secao('Mercado Livre (simulado)')
 await page.getByRole('button', { name: 'Conectar Mercado Livre' }).click()
-await page.waitForURL(/\/config\?ml=/, { timeout: 15000 }).catch(() => {}); await espera(1500)
+await page.waitForURL(/\/config/, { timeout: 15000 }).catch(() => {}); await page.getByText('LOJA_TESTE').first().waitFor({ timeout: 15000 }).catch(() => {}); await espera(1000)
 const mltxt = await page.locator('main').innerText()
 ok(/LOJA_TESTE/.test(mltxt), 'Conectar o ML: volta conectado com o apelido da conta', page.url())
 ok(await dialog(page).count() > 0, 'Logo depois de conectar, já abre a importação de anúncios')

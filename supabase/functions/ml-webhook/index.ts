@@ -25,9 +25,14 @@ Deno.serve(async (req) => {
   // O ML não assina os avisos: aceita só os do nosso aplicativo e só usa o id para buscar os dados na API com o token da empresa.
   if (!body?.resource || !APP_ID || String(body.application_id) !== APP_ID) return new Response('ignorado')
   const db = admin()
+  if (typeof body.resource !== 'string' || body.resource.length > 200 || !/^\/?[a-z0-9_/]+$/i.test(body.resource)) return new Response('ignorado')
   const { data: conta } = await db.from('ml_conta').select('empresa_id').eq('ml_user_id', Number(body.user_id)).maybeSingle()
-  const { data: ev } = await db.from('ml_evento').insert({ empresa_id: conta?.empresa_id ?? null, ml_user_id: body.user_id ?? null, topic: body.topic, resource: body.resource }).select('id').single()
-  if (!conta) return new Response('ok') // conta não conectada a nenhuma empresa
+  if (!conta) return new Response('ok') // conta não conectada a nenhuma empresa: nem registra (evita encher o banco com avisos falsos)
+  // O mesmo aviso repetido em poucos segundos não é processado de novo (o ML reenvia, e alguém poderia disparar em massa)
+  const { count } = await db.from('ml_evento').select('id', { count: 'exact', head: true })
+    .eq('empresa_id', conta.empresa_id).eq('resource', body.resource).gt('recebido_em', new Date(Date.now() - 30_000).toISOString())
+  if (count) return new Response('ok')
+  const { data: ev } = await db.from('ml_evento').insert({ empresa_id: conta.empresa_id, ml_user_id: body.user_id ?? null, topic: String(body.topic).slice(0, 40), resource: body.resource }).select('id').single()
   // Responde 200 na hora (senão o ML reenvia) e processa em segundo plano.
   EdgeRuntime.waitUntil(
     processar(conta.empresa_id, String(body.topic), String(body.resource))

@@ -26,6 +26,12 @@ export async function chamar(acao: string, extra: Record<string, unknown> = {}) 
   return data
 }
 
+/** Mensagens fixas da volta do ML (o endereço não pode trazer texto livre para a tela). */
+const MOTIVOS: Record<string, string> = {
+  cancelado: 'A autorização no Mercado Livre foi cancelada.',
+  vencido: 'O link de conexão venceu. Clique em Conectar de novo.',
+}
+
 const RESULTADO: Record<string, string> = {
   lancada: 'lançadas', ja_lancada: 'já estavam lançadas', pendente: 'foram para conferir', cancelada: 'canceladas',
   ignorada: 'canceladas no ML (ignoradas)', aguardando_pagamento: 'aguardando pagamento', erro: 'com erro',
@@ -42,15 +48,19 @@ export function PainelML() {
   const [erro, setErro] = useState<string | null>(null)
   const [importar, setImportar] = useState(false)
 
-  // Volta da autorização: ?ml=ok ou ?ml=erro&msg=…
+  // Volta da autorização do ML: ?ml_code=…&ml_state=… (conclui aqui, com o usuário logado) ou ?ml=erro&motivo=…
   useEffect(() => {
     const q = new URLSearchParams(window.location.search)
-    const r = q.get('ml')
-    if (!r) return
-    if (r === 'ok') { toast('Mercado Livre conectado.'); setImportar(true) }
-    else setErro(q.get('msg') ?? 'Não foi possível conectar.')
+    const code = q.get('ml_code'), state = q.get('ml_state'), motivo = q.get('motivo')
+    if (!code && !q.get('ml')) return
     history.replaceState(null, '', window.location.pathname)
-    st.recarregar()
+    if (code && state) {
+      chamar('finalizar', { code, state })
+        .then(() => { toast('Mercado Livre conectado.'); setImportar(true); st.recarregar() })
+        .catch((e) => setErro(erroMsg(e)))
+      return
+    }
+    setErro(MOTIVOS[motivo ?? ''] ?? 'Não foi possível conectar. Tente de novo.')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

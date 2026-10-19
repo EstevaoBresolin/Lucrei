@@ -1,7 +1,7 @@
 // Ações chamadas pelo sistema (usuário logado), sempre na empresa atual dele:
 // link de conexão, sincronizar pedidos, reimportar um pedido e listar anúncios para importar.
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { admin, APP_ID, atualizarLiberacao, cors, importarPedido, json, listarAnuncios, ml, REDIRECT_URI } from '../_shared/ml.ts'
+import { admin, APP_ID, atualizarLiberacao, cors, importarPedido, json, listarAnuncios, ml, REDIRECT_URI, salvarTokens, trocarToken } from '../_shared/ml.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
     })
     const [{ data: empresa }, { data: membro }] = await Promise.all([user.rpc('empresa_atual'), user.rpc('is_membro')])
     if (!empresa || !membro) return json({ erro: 'Sem permissão' }, 403)
-    const { acao, order_id } = await req.json().catch(() => ({}))
+    const { acao, order_id, code, state } = await req.json().catch(() => ({}))
     const db = admin()
 
     if (acao === 'auth_url') {
@@ -23,6 +23,24 @@ Deno.serve(async (req) => {
       await db.from('ml_oauth_state').insert({ state, empresa_id: empresa, created_by: u.user?.id ?? null })
       const url = `https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=${APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${state}`
       return json({ url })
+    }
+
+    if (acao === 'finalizar') {
+      const { data: dono } = await user.rpc('is_admin')
+      if (!dono) return json({ erro: 'Só o dono da empresa pode conectar a conta.' }, 403)
+      const { data: u } = await user.auth.getUser()
+      // O pedido de conexão precisa ter sido feito por este mesmo usuário, nesta mesma empresa, há menos de 15 minutos
+      const { data: st } = await db.from('ml_oauth_state').select('empresa_id, created_by, created_at').eq('state', String(state ?? '')).maybeSingle()
+      await db.from('ml_oauth_state').delete().eq('state', String(state ?? ''))
+      if (!st || st.empresa_id !== empresa || st.created_by !== u.user?.id || Date.now() - new Date(st.created_at).getTime() > 15 * 60 * 1000)
+        return json({ erro: 'Este pedido de conexão não é seu ou já venceu. Clique em Conectar de novo.' }, 400)
+      const t = await trocarToken({ grant_type: 'authorization_code', code: String(code ?? ''), redirect_uri: REDIRECT_URI })
+      if (!t.refresh_token) return json({ erro: 'O aplicativo do Mercado Livre está sem a permissão "offline_access". Ative-a no DevCenter do ML e conecte de novo.' }, 400)
+      const { data: outra } = await db.from('ml_conta').select('empresa_id').eq('ml_user_id', t.user_id).neq('empresa_id', empresa).maybeSingle()
+      if (outra) return json({ erro: 'Esta conta do Mercado Livre já está conectada a outra empresa no Lucrei. Desconecte lá antes de conectar aqui.' }, 400)
+      const me = await fetch('https://api.mercadolibre.com/users/me', { headers: { Authorization: `Bearer ${t.access_token}` } }).then((r) => r.json()).catch(() => ({}))
+      await salvarTokens(db, empresa, t, { nickname: me.nickname ?? null })
+      return json({ ok: true })
     }
 
     if (acao === 'importar' && order_id) return json({ resultado: await importarPedido(db, empresa, Number(order_id)) })

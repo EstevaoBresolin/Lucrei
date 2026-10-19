@@ -3,6 +3,7 @@ import { Check, ExternalLink } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth'
 import { useLoad } from '../lib/useQuery'
+import { docValido } from '../lib/fmt'
 import { Badge, Button, ErrorBox, Field, Input, PageHeader, Panel, useConfirm, useToast } from '../components/ui'
 
 type Plano = { codigo: string; nome: string; preco: number; limite_vendas: number }
@@ -54,6 +55,7 @@ export default function Assinatura() {
     if (!plano) return setErro('Escolha um plano.')
     const digitos = doc.replace(/\D/g, '')
     if (!a!.assinada && digitos.length !== 11 && digitos.length !== 14) return setErro('Informe o CPF ou CNPJ de quem vai pagar (vai na nota da cobrança).')
+    if (!a!.assinada && !docValido(digitos)) return setErro('CPF ou CNPJ inválido. Confira os números.')
     setBusy(true)
     try {
       const r = await chamar('assinar', { plano: plano.codigo, documento: digitos })
