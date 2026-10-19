@@ -11,10 +11,10 @@ export function Moldura({ children, sub, largo }: { children: ReactNode; sub: st
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className={`w-full ${largo ? 'max-w-2xl' : 'max-w-sm'} py-10`}>
         <div className="mb-8">
-          <div className="led-strip inline-flex items-center gap-3 pb-2">
+          <a href="/" className="led-strip inline-flex items-center gap-3 pb-2">
             <img src="/icon.svg" alt="" className="h-10 w-10" />
             <span className="wide text-2xl font-bold tracking-tight">Lucrei</span>
-          </div>
+          </a>
           <p className="mt-4 text-sm text-muted">{sub}</p>
         </div>
         {children}
@@ -23,8 +23,8 @@ export function Moldura({ children, sub, largo }: { children: ReactNode; sub: st
   )
 }
 
-export default function Login({ convite }: { convite?: string | null }) {
-  const [modo, setModo] = useState<Modo>(convite ? 'criar' : 'entrar')
+export default function Login({ convite, inicio }: { convite?: string | null; inicio?: Modo }) {
+  const [modo, setModo] = useState<Modo>(convite ? 'criar' : inicio ?? 'entrar')
   const [aceito, setAceito] = useState(false)
   // Convite aberto sem login: guarda para aceitar logo depois de entrar
   useEffect(() => { if (convite) guardarConvite(convite) }, [convite])
@@ -76,6 +76,7 @@ export default function Login({ convite }: { convite?: string | null }) {
   }
 
   const sub = modo === 'esqueci' ? 'Informe seu e-mail e enviaremos um link para criar uma nova senha.'
+    : modo === 'criar' && !convite ? 'Crie sua conta e use tudo por 30 dias grátis, sem cartão de crédito.'
     : convite ? 'Você recebeu um convite. Crie sua conta (ou entre, se já tiver uma) para participar da empresa.'
     : 'Saiba quanto você lucra de verdade em cada venda: estoque, custos, taxas e caixa em um lugar só.'
   return (

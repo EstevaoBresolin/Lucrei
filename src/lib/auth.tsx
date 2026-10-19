@@ -11,16 +11,30 @@ export type Empresa = {
 }
 type Vinculo = { papel: Papel; empresa: Empresa }
 
+/** Situação da assinatura da empresa atual (função minha_assinatura no banco). */
+export type Assinatura = {
+  status: string; situacao: 'teste' | 'ativa' | 'atrasada' | 'cancelada' | 'bloqueada' | 'cortesia'; liberada: boolean
+  plano: string; plano_nome: string | null; preco: number | null; limite_vendas: number | null
+  teste_ate: string | null; dias_teste: number; pago_ate: string | null; assinada: boolean
+  cobranca_url: string | null; cobranca_vencimento: string | null; documento: string | null; vendas_mes: number
+}
+
 /** Versão dos termos de uso e da política de privacidade. Mudou o texto? Aumente aqui: todos aceitam de novo. */
-export const TERMOS_VERSAO = '2026-10-16'
+export const TERMOS_VERSAO = '2026-10-19'
 
 type Ctx = {
   session: Session | null; carregando: boolean; nome: string
   /** Empresas das quais o usuário participa */
   empresas: Vinculo[]
   empresa: Empresa | null; papel: Papel | null
-  /** Dono: finanças, configurações, usuários e exclusões */
+  /** Dono (vê finanças, configurações e assinatura, mesmo com a empresa bloqueada) */
+  ehDono: boolean
+  /** Dono com a empresa liberada: altera finanças, configurações, usuários e exclui */
   isAdmin: boolean
+  assinatura: Assinatura | null
+  /** Teste acabou ou assinatura não paga: vê tudo, não lança nada */
+  bloqueada: boolean
+  recarregarAssinatura: () => Promise<void>
   /** Dono ou operador: lançar e alterar */
   podeEditar: boolean
   modulo: (m: Modulo) => boolean
@@ -31,7 +45,8 @@ type Ctx = {
   recuperando: boolean; fimRecuperacao: () => void
 }
 const AuthCtx = createContext<Ctx>({
-  session: null, carregando: true, nome: '', empresas: [], empresa: null, papel: null, isAdmin: false, podeEditar: false,
+  session: null, carregando: true, nome: '', empresas: [], empresa: null, papel: null, ehDono: false, isAdmin: false, podeEditar: false,
+  assinatura: null, bloqueada: false, recarregarAssinatura: async () => {},
   modulo: () => false, termosOk: false, recarregar: async () => {}, trocarEmpresa: async () => {}, recuperando: false, fimRecuperacao: () => {},
 })
 
@@ -45,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [empresas, setEmpresas] = useState<Vinculo[]>([])
   const [atual, setAtual] = useState<string | null>(null)
   const [termos, setTermos] = useState<string | null>(null)
+  const [assinatura, setAssinatura] = useState<Assinatura | null>(null)
   const [recuperando, setRecuperando] = useState(() => /type=recovery/.test(window.location.hash))
 
   useEffect(() => {
@@ -74,7 +90,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await supabase.rpc('trocar_empresa', { p_empresa: escolhida })
     }
     setAtual(lista.length ? escolhida : null)
+    if (lista.length) setAssinatura((await supabase.rpc('minha_assinatura')).data as Assinatura | null)
   }, [userId])
+
+  const recarregarAssinatura = useCallback(async () => {
+    setAssinatura((await supabase.rpc('minha_assinatura')).data as Assinatura | null)
+  }, [])
 
   // Ao voltar para a aba o Supabase renova o token e entrega um objeto de sessão novo.
   // Só recarregamos quando o usuário muda; senão a tela inteira era desmontada e modais perdiam o que foi digitado.
@@ -100,11 +121,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const papel = vinc?.papel ?? null
   const empresa = vinc?.empresa ?? null
   const modulo = (m: Modulo) => !!empresa?.modulos?.[m]
+  const bloqueada = !!assinatura && !assinatura.liberada
 
   return (
     <AuthCtx.Provider value={{
       session, carregando, nome, empresas, empresa, papel,
-      isAdmin: papel === 'dono', podeEditar: papel === 'dono' || papel === 'operador',
+      ehDono: papel === 'dono', isAdmin: papel === 'dono' && !bloqueada, podeEditar: (papel === 'dono' || papel === 'operador') && !bloqueada,
+      assinatura, bloqueada, recarregarAssinatura,
       modulo, termosOk: termos === TERMOS_VERSAO, recarregar: carregar, trocarEmpresa, recuperando, fimRecuperacao,
     }}>
       {children}

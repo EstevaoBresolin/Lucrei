@@ -62,7 +62,9 @@ export function Termos() {
       <p>Buscamos manter o sistema disponível e os dados protegidos, com cópias de segurança, mas não garantimos funcionamento ininterrupto ou livre de erros. Na máxima extensão permitida pela lei, não respondemos por lucros cessantes, perda de vendas ou danos indiretos decorrentes do uso ou da indisponibilidade do serviço.</p>
 
       <h2>7. Planos e pagamento</h2>
-      <p>Durante a fase inicial o uso pode ser gratuito. Planos pagos, quando existirem, terão preço e condições informados antes da contratação, e nenhuma cobrança será feita sem sua concordância.</p>
+      <p>Toda empresa nova tem 30 dias de teste grátis, com todos os recursos e sem precisar de cartão. Depois disso, o uso continua mediante assinatura mensal de um dos planos exibidos no site, que variam conforme o número de vendas lançadas por mês (sem contar canceladas). Nenhuma cobrança é feita sem que você escolha e contrate um plano.</p>
+      <p>A cobrança é feita pelo Asaas, por Pix, boleto ou cartão, e renova todo mês até ser cancelada. Você pode trocar de plano ou cancelar a qualquer momento na tela de Assinatura, sem multa; após o cancelamento, o acesso continua até o fim do período já pago.</p>
+      <p>Se o teste acabar sem assinatura, ou se uma cobrança ficar em aberto por mais de 3 dias após o vencimento, a conta passa para o modo só leitura: os dados continuam guardados e visíveis, mas não é possível lançar nem alterar informações até o pagamento. Se o volume de vendas passar do limite do plano, avisaremos para que você troque de plano. Os preços podem ser reajustados com aviso prévio de pelo menos 30 dias.</p>
 
       <h2>8. Encerramento</h2>
       <p>Você pode parar de usar o serviço quando quiser. Podemos suspender contas que violem estes termos. Em caso de encerramento do serviço, avisaremos com antecedência razoável para que você possa exportar seus dados.</p>
@@ -90,6 +92,7 @@ export function Privacidade() {
       <h2>2. Que dados tratamos</h2>
       <ul>
         <li>Cadastro: nome, e-mail e senha (guardada de forma criptografada pelo provedor de autenticação).</li>
+        <li>Assinatura: CPF ou CNPJ de quem paga, plano contratado e situação dos pagamentos. Os dados do cartão são digitados diretamente na página do Asaas e não passam pelo Lucrei.</li>
         <li>Dados de negócio: produtos, insumos, compras, vendas, despesas, saldos e demais informações que você lança.</li>
         <li>Dados vindos do marketplace conectado: anúncios, pedidos, apelido do comprador, envios, valores e datas de liberação de pagamentos e perguntas de clientes.</li>
         <li>Dados técnicos: data e hora de acesso, registros de alterações feitas no sistema (auditoria) e informações necessárias para segurança.</li>
@@ -104,7 +107,7 @@ export function Privacidade() {
       <p>Não vendemos dados pessoais e não os usamos para publicidade de terceiros.</p>
 
       <h2>4. Com quem compartilhamos</h2>
-      <p>Apenas com fornecedores necessários para o funcionamento do serviço, que seguem obrigações de segurança: hospedagem e banco de dados (Supabase), publicação do site (Vercel), envio de e-mails (Resend) e o marketplace que você conectar (Mercado Livre). Alguns desses fornecedores podem armazenar dados fora do Brasil, com as garantias previstas na LGPD. Também podemos compartilhar dados quando exigido por lei ou ordem judicial.</p>
+      <p>Apenas com fornecedores necessários para o funcionamento do serviço, que seguem obrigações de segurança: hospedagem e banco de dados (Supabase), publicação do site (Vercel), envio de e-mails (Resend), cobrança das assinaturas (Asaas) e o marketplace que você conectar (Mercado Livre). Alguns desses fornecedores podem armazenar dados fora do Brasil, com as garantias previstas na LGPD. Também podemos compartilhar dados quando exigido por lei ou ordem judicial.</p>
 
       <h2>5. Por quanto tempo guardamos</h2>
       <p>Enquanto a conta e a empresa estiverem ativas. Após pedido de exclusão, apagamos os dados em até 30 dias, exceto o que a lei obrigar a manter (por exemplo, registros de acesso por 6 meses). Cópias de segurança são sobrescritas no ciclo normal de backup.</p>

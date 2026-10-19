@@ -1,10 +1,11 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, ShoppingCart, Boxes, Package, Hammer, Truck, Settings, LogOut, Plus, Wallet, Users, MoreHorizontal, Layers, UserCircle, Landmark } from 'lucide-react'
+import { LayoutDashboard, ShoppingCart, Boxes, Package, Hammer, Truck, Settings, LogOut, Plus, Wallet, Users, MoreHorizontal, Layers, UserCircle, Landmark, CreditCard } from 'lucide-react'
 import MinhaConta from './MinhaConta'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth, type Modulo } from '../lib/auth'
 import EmpresaSeletor from './EmpresaSeletor'
+import FaixaAssinatura from './FaixaAssinatura'
 
 type Item = { to: string; label: string; icon: typeof Boxes; end?: boolean; admin?: boolean; modulo?: Modulo | Modulo[] }
 const nav: Item[] = [
@@ -19,14 +20,15 @@ const nav: Item[] = [
   { to: '/financas', label: 'Finanças', icon: Landmark, admin: true, modulo: 'financas' },
   { to: '/financeiro', label: 'Despesas', icon: Wallet, admin: true, modulo: 'financas' },
   { to: '/config', label: 'Configurações', icon: Settings, admin: true },
+  { to: '/assinatura', label: 'Assinatura', icon: CreditCard, admin: true },
 ]
 
 export default function Layout() {
-  const { nome, isAdmin, podeEditar, modulo } = useAuth()
+  const { nome, ehDono, podeEditar, modulo, papel, bloqueada, assinatura } = useAuth()
   const navigate = useNavigate()
   const [mais, setMais] = useState(false)
   const [conta, setConta] = useState(false)
-  const itens = nav.filter((n) => (!n.admin || isAdmin) && (!n.modulo || [n.modulo].flat().some(modulo)))
+  const itens = nav.filter((n) => (!n.admin || ehDono) && !(n.to === '/assinatura' && assinatura?.situacao === 'cortesia') && (!n.modulo || [n.modulo].flat().some(modulo)))
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-[232px_1fr]">
@@ -64,7 +66,8 @@ export default function Layout() {
       </header>
 
       <main className="mx-auto w-full min-w-0 max-w-6xl px-4 pb-28 pt-6 sm:px-6 md:pb-10 md:pt-8">
-        {!podeEditar && <p className="mb-4 rounded-box bg-line/50 px-3 py-2 text-sm text-muted">Seu acesso nesta empresa é <b>só leitura</b>: você vê tudo, mas não pode lançar nem alterar.</p>}
+        <FaixaAssinatura />
+        {papel === 'leitura' && !bloqueada && <p className="mb-4 rounded-box bg-line/50 px-3 py-2 text-sm text-muted">Seu acesso nesta empresa é <b>só leitura</b>: você vê tudo, mas não pode lançar nem alterar.</p>}
         <Outlet />
       </main>
 

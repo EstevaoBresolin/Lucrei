@@ -16,11 +16,13 @@ import Cadastros from './pages/Cadastros'
 import Financeiro from './pages/Financeiro'
 import Financas from './pages/Financas'
 import Config from './pages/Config'
+import Assinatura from './pages/Assinatura'
+import Landing from './pages/Landing'
 import { Privacidade, Termos } from './pages/Termos'
 import { AceitarTermos, Convite, CriarEmpresa, conviteGuardado } from './pages/Onboarding'
 
 export default function App() {
-  const { session, carregando, isAdmin, recuperando, empresa, termosOk, modulo } = useAuth()
+  const { session, carregando, ehDono, recuperando, empresa, termosOk, modulo } = useAuth()
   const { pathname } = useLocation()
 
   // Páginas públicas
@@ -30,7 +32,12 @@ export default function App() {
   if (carregando) return <div className="flex min-h-screen items-center justify-center text-sm text-muted">Carregando…</div>
   if (recuperando && session) return <NovaSenha />
   const convite = pathname.startsWith('/convite/') ? pathname.split('/')[2] : null
-  if (!session) return <Login convite={convite} />
+  if (!session) {
+    if (convite) return <Login convite={convite} />
+    if (pathname === '/entrar') return <Login />
+    if (pathname === '/cadastro') return <Login inicio="criar" />
+    return <Landing />
+  }
   if (!termosOk) return <AceitarTermos />
   if (convite || (!empresa && conviteGuardado())) return <Convite token={convite ?? conviteGuardado()!} />
   if (!empresa) return <CriarEmpresa />
@@ -49,9 +56,10 @@ export default function App() {
         {modulo('producao') && <Route path="producao" element={<Producao />} />}
         {modulo('compras') && <Route path="compras" element={<Compras />} />}
         {(modulo('clientes') || modulo('fornecedores')) && <Route path="cadastros" element={<Cadastros />} />}
-        {isAdmin && modulo('financas') && <Route path="financeiro" element={<Financeiro />} />}
-        {isAdmin && modulo('financas') && <Route path="financas" element={<Financas />} />}
-        {isAdmin && <Route path="config" element={<Config />} />}
+        {ehDono && modulo('financas') && <Route path="financeiro" element={<Financeiro />} />}
+        {ehDono && modulo('financas') && <Route path="financas" element={<Financas />} />}
+        {ehDono && <Route path="config" element={<Config />} />}
+        <Route path="assinatura" element={<Assinatura />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
