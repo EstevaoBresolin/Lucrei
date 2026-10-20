@@ -14,7 +14,6 @@ type Mov = { id?: string; conta_id: string; tipo: 'entrada' | 'saida'; valor: st
 const ORIGEM: Record<Linha['origem'], string> = { manual: 'Lançamento', transferencia: 'Transferência', despesa: 'Despesa', compra: 'Compra', venda: 'Venda' }
 
 export default function Financas() {
-  const toast = useToast()
   const contasQ = useLoad<Conta[]>(() => supabase.from('vw_conta_saldo').select('*').order('nome'), [])
   const extratoQ = useLoad<Linha[]>(() => supabase.from('vw_extrato').select('*').order('data').order('descricao'), [])
   const pagarQ = useLoad<CompraFin[]>(() => supabase.from('vw_compra_financeiro').select('*').neq('status', 'cancelada').order('data'), [])
@@ -25,7 +24,6 @@ export default function Financas() {
   const [transf, setTransf] = useState(false)
   const [ajuste, setAjuste] = useState<Conta | null>(null)
   const [gerir, setGerir] = useState(false)
-  const [erro, setErro] = useState<string | null>(null)
 
   const recarregar = () => { contasQ.recarregar(); extratoQ.recarregar(); pagarQ.recarregar() }
   const contas = (contasQ.data ?? []).filter((c) => c.ativo)
@@ -68,7 +66,7 @@ export default function Financas() {
           <Button size="sm" onClick={() => setGerir(true)}><Settings2 size={15} /> Contas</Button>
           <Button size="sm" variant="primary" onClick={() => setMov({ conta_id: (contas.find((c) => c.padrao) ?? contas[0]).id, tipo: 'saida', valor: '', data: hoje(), descricao: '' })}><Plus size={15} /> Entrada ou saída</Button>
         </>} />
-      <ErrorBox msg={erro ?? extratoQ.erro ?? pagarQ.erro} />
+      <ErrorBox msg={extratoQ.erro ?? pagarQ.erro} />
 
       <Panel className="mb-5">
         <div className="grid grid-cols-1 gap-px overflow-hidden rounded-box bg-line sm:grid-cols-3 [&>*]:bg-panel">
