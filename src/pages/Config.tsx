@@ -148,7 +148,7 @@ const MODULOS: { id: Modulo; nome: string; texto: string }[] = [
   { id: 'producao', nome: 'Produção e insumos', texto: 'Ficha técnica, ordens de produção e estoque de insumos. Para quem fabrica.' },
   { id: 'kits', nome: 'Kits', texto: 'Produtos formados por outros produtos (ex.: kit 2 unidades).' },
   { id: 'compras', nome: 'Compras', texto: 'Pedidos a fornecedores que dão entrada no estoque com o custo certo.' },
-  { id: 'financas', nome: 'Finanças e despesas', texto: 'Saldo em conta, a receber do Mercado Livre, despesas do mês.' },
+  { id: 'financas', nome: 'Finanças e despesas', texto: 'Saldo das contas, despesas do mês e pagamentos de compras.' },
   { id: 'mercado_livre', nome: 'Mercado Livre', texto: 'Vendas automáticas, anúncios e avisos de perguntas.' },
   { id: 'clientes', nome: 'Clientes', texto: 'Cadastro de clientes para venda direta.' },
   { id: 'fornecedores', nome: 'Fornecedores', texto: 'Cadastro de fornecedores para compras.' },

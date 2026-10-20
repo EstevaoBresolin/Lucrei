@@ -59,7 +59,7 @@ const RECURSOS: { icon: typeof Boxes; titulo: string; texto: string }[] = [
   { icon: PlugZap, titulo: 'Mercado Livre no automático', texto: 'Conecte sua conta e cada venda entra sozinha, com tarifa, frete e status do envio. Importe seus anúncios e já saia com os produtos cadastrados.' },
   { icon: ReceiptText, titulo: 'Lucro real de cada venda', texto: 'Desconta taxa, frete, imposto e o custo do produto. Você vê o que sobrou de fato, por venda, por produto e por canal.' },
   { icon: Boxes, titulo: 'Estoque que se mexe sozinho', texto: 'Vendeu, baixou. Kits baixam cada item que vai dentro. Alerta de estoque baixo antes de faltar.' },
-  { icon: Landmark, titulo: 'Caixa e dinheiro a receber', texto: 'Saldo das contas, despesas e quanto ainda vai cair do Mercado Livre, com a data de liberação de cada pedido.' },
+  { icon: Landmark, titulo: 'Caixa e contas a pagar', texto: 'Saldo das contas, despesas e o que falta pagar aos fornecedores, com adiantamento e pagamento em partes.' },
   { icon: Layers, titulo: 'Produção e insumos (se precisar)', texto: 'Fabrica o que vende? Monte a ficha técnica e o custo sai certo. Só revende? Desligue o módulo e pronto.' },
   { icon: Users, titulo: 'Equipe com permissões', texto: 'Convide quem ajuda: operador lança vendas e estoque, mas finanças ficam só com você.' },
 ]
@@ -138,7 +138,7 @@ export default function Landing() {
           {[
             ['Crie sua conta', 'Nome, e-mail e senha. Sem cartão.'],
             ['Conecte o Mercado Livre', 'Um clique. Importe os anúncios e informe o custo de cada produto.'],
-            ['Acompanhe o painel', 'Faturamento, lucro, margem, estoque e o que falta receber.'],
+            ['Acompanhe o painel', 'Faturamento, lucro, margem, estoque e o que falta pagar.'],
           ].map(([t, d], i) => (
             <li key={t} className="rounded-xl border border-line bg-panel p-6">
               <span className="wide num text-4xl font-extrabold text-led">{i + 1}</span>
@@ -166,7 +166,7 @@ export default function Landing() {
                   <p className="mt-1 text-sm text-muted">Até <b className="text-ink">{p.limite_vendas.toLocaleString('pt-BR')} vendas</b> por mês</p>
                   <p className="mt-5"><span className="wide num text-4xl font-extrabold">{brl(Number(p.preco))}</span><span className="text-muted">/mês</span></p>
                   <ul className="mt-6 flex-1 space-y-2 text-[15px]">
-                    {['Mercado Livre automático', 'Lucro por venda e por produto', 'Estoque, kits e compras', 'Finanças e a receber do ML', 'Usuários com permissões'].map((r) => (
+                    {['Mercado Livre automático', 'Lucro por venda e por produto', 'Estoque, kits e compras', 'Finanças e contas a pagar', 'Usuários com permissões'].map((r) => (
                       <li key={r} className="flex gap-2"><Check size={18} className="mt-0.5 shrink-0 text-led" />{r}</li>
                     ))}
                   </ul>

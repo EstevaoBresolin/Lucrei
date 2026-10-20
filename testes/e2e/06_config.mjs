@@ -103,7 +103,7 @@ await page.goto(APP + '/config'); await page.getByText('Módulos').waitFor()
 await page.getByRole('button', { name: /Buscar vendas/ }).click(); await espera(4000)
 ok(SQL("select count(*) from venda where ml_order_id in (5001,5002)") === '2', 'Buscar de novo não duplica vendas')
 await page.goto(APP + '/financas'); await espera(1500)
-ok(/155,42/.test(await page.locator('main').innerText()), 'A receber do ML mostra o líquido do pedido')
+{ const t = await page.locator('main').innerText(); ok(!/A receber do Mercado Livre|155,42|Atualizar do ML/.test(t), 'Finanças não mostra mais o a receber do ML (saldo só das contas)') }
 
 secao('Usuários e convites')
 await page.goto(APP + '/config'); await page.getByText('Usuários').waitFor()

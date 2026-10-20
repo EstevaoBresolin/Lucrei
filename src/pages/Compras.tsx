@@ -6,7 +6,8 @@ import { useAuth } from '../lib/auth'
 import { dataBR, hoje, money, parseNum, qty } from '../lib/fmt'
 import type { Fornecedor, Material, Produto } from '../lib/types'
 import { Badge, Button, Empty, ErrorBox, Field, Input, Loading, Modal, NumInput, PageHeader, Panel, Select, Table, useConfirm, useToast } from '../components/ui'
-import { CampoConta } from '../components/Contas'
+import { CampoConta, useContas } from '../components/Contas'
+import { falta, PagarCompra, type CompraFin } from '../components/PagamentoCompra'
 
 type ItemCompra = {
   item_tipo: 'material' | 'produto'; material_id: string | null; produto_id: string | null
@@ -33,8 +34,12 @@ const unidadeCompra = (i: ItemCompra) => i.material?.unidade_compra ?? 'un'
 export default function Compras() {
   const toast = useToast()
   const confirmar = useConfirm()
-  const { modulo, podeEditar } = useAuth()
+  const { modulo, podeEditar, ehDono } = useAuth()
   const insumos = modulo('producao')
+  // Quanto já foi pago de cada compra (só o dono vê o dinheiro)
+  const fin = useLoad<CompraFin[]>(() => (ehDono ? supabase.from('vw_compra_financeiro').select('*') : Promise.resolve({ data: [], error: null })) as never, [ehDono])
+  const finPor = useMemo(() => new Map((fin.data ?? []).map((x) => [x.id, x])), [fin.data])
+  const [pagar, setPagar] = useState<{ fin: CompraFin; conta: string | null } | null>(null)
   const compras = useLoad<Compra[]>(() => supabase.from('compra')
     .select('*, fornecedor(nome), compra_item(item_tipo, material_id, produto_id, qtd_compra, preco_unit_compra, custo_unit_final, material(nome, unidade_compra, unidade_uso), produto(nome))')
     .order('data', { ascending: false }).order('numero', { ascending: false }).limit(100), [])
@@ -62,7 +67,7 @@ export default function Compras() {
     return [...grupos.values()]
   }, [mats.data, prods.data, forns.data, insumos])
 
-  const recarregar = () => { compras.recarregar(); mats.recarregar(); prods.recarregar() }
+  const recarregar = () => { compras.recarregar(); mats.recarregar(); prods.recarregar(); fin.recarregar() }
   async function receber(c: Compra) {
     setErro(null)
     const { error } = await supabase.rpc('receber_compra', { p_compra: c.id })
@@ -70,11 +75,12 @@ export default function Compras() {
     toast(`Compra #${c.numero} recebida. Os itens entraram no estoque.`); recarregar()
   }
   async function excluir(c: Compra) {
-    if (!(await confirmar({ titulo: `Excluir a compra #${c.numero}?`, mensagem: 'A compra e os itens dela são apagados. Nada muda no estoque, porque ela ainda não foi recebida.' }))) return
+    const pago = Number(finPor.get(c.id)?.pago ?? 0)
+    if (!(await confirmar({ titulo: `Excluir a compra #${c.numero}?`, mensagem: `A compra e os itens dela são apagados. Nada muda no estoque, porque ela ainda não foi recebida.${pago > 0 ? ` Os pagamentos lançados (${money(pago)}) também são apagados e o valor volta para o saldo.` : ''}` }))) return
     setErro(null)
     const { error } = await supabase.rpc('excluir_compra', { p_id: c.id })
     if (error) return setErro(erroMsg(error))
-    toast(`Compra #${c.numero} excluída.`); compras.recarregar()
+    toast(`Compra #${c.numero} excluída.`); compras.recarregar(); fin.recarregar()
   }
   const editar = (c: Compra) => setNova({
     id: c.id, numero: c.numero, fornecedor_id: c.fornecedor_id ?? '', data: c.data, frete: brs(c.frete), outras: brs(c.outras_despesas), desconto: brs(c.desconto),
@@ -112,7 +118,7 @@ export default function Compras() {
       )}
       <Panel>
         {compras.carregando && !compras.data ? <Loading /> : (compras.data ?? []).length === 0 ? <Empty title="Nenhuma compra lançada">Lance as compras para o estoque e o custo de cada produto ficarem certos.</Empty> : (
-          <Table head={<tr><th>Nº</th><th>Data</th><th>Fornecedor</th><th>Itens</th><th>Situação</th><th className="text-right">Total</th><th /></tr>}>
+          <Table head={<tr><th>Nº</th><th>Data</th><th>Fornecedor</th><th>Itens</th><th>Situação</th><th className="text-right">Total</th>{ehDono && <th className="text-right">Pagamento</th>}<th /></tr>}>
             {(compras.data ?? []).map((c) => (
               <Fragment key={c.id}>
                 <tr onClick={() => setAberta(aberta === c.id ? null : c.id)} className="cursor-pointer hover:bg-line/30">
@@ -122,9 +128,23 @@ export default function Compras() {
                   <td className="max-w-64 truncate">{c.compra_item.map(nomeItem).join(', ')}</td>
                   <td><Badge tone={ST[c.status].t}>{ST[c.status].l}</Badge></td>
                   <td className="num text-right">{money(totalCompra(c))}</td>
+                  {ehDono && (() => {
+                    const x = finPor.get(c.id)
+                    if (!x || c.status === 'cancelada') return <td />
+                    const resta = falta(x)
+                    return (
+                      <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                        {resta <= 0 ? <Badge tone="good">Paga</Badge>
+                          : <button type="button" onClick={() => setPagar({ fin: x, conta: c.conta_id })} className="num whitespace-nowrap rounded-box px-1.5 py-0.5 text-sm text-warn hover:bg-warn/10">
+                              {Number(x.pago) > 0 ? `Falta ${money(resta)}` : 'Não paga'}
+                            </button>}
+                      </td>
+                    )
+                  })()}
                   <td className="text-right" onClick={(e) => e.stopPropagation()}>
                     {podeEditar && (
                       <div className="flex justify-end gap-1.5">
+                        {ehDono && c.status !== 'cancelada' && finPor.get(c.id) && falta(finPor.get(c.id)!) > 0 && <Button size="sm" onClick={() => setPagar({ fin: finPor.get(c.id)!, conta: c.conta_id })}>Pagar</Button>}
                         {c.status === 'pedida' && <Button size="sm" variant="primary" onClick={() => receber(c)}>Receber</Button>}
                         {c.status === 'pedida' && <Button size="sm" variant="ghost" aria-label={`Editar compra ${c.numero}`} onClick={() => editar(c)}><Pencil size={15} /></Button>}
                         {(c.status === 'pedida' || c.status === 'cancelada') && <Button size="sm" variant="ghost" className="hover:text-bad" aria-label={`Excluir compra ${c.numero}`} onClick={() => excluir(c)}><Trash2 size={15} /></Button>}
@@ -133,7 +153,7 @@ export default function Compras() {
                   </td>
                 </tr>
                 {aberta === c.id && (
-                  <tr><td colSpan={7} className="bg-base/50">
+                  <tr><td colSpan={ehDono ? 8 : 7} className="bg-base/50">
                     <ul className="num space-y-1 text-sm">
                       {c.compra_item.map((i, k) => (
                         <li key={k}>{qty(i.qtd_compra)} {unidadeCompra(i)} de {nomeItem(i)} a {money(i.preco_unit_compra)}{i.custo_unit_final != null && <span className="text-muted">, custo final {money(i.custo_unit_final)}/{i.material?.unidade_uso ?? 'un'} com frete</span>}</li>
@@ -141,6 +161,7 @@ export default function Compras() {
                       {Number(c.frete) > 0 && <li className="text-muted">Frete: {money(c.frete)}</li>}
                       {c.status === 'recebida' && <li className="text-xs text-muted">Compra recebida não pode ser editada nem excluída, porque os itens já entraram no estoque. Para corrigir saldo, use Estoque → Movimentar.</li>}
                       {c.nf_numero && <li className="text-muted">NF {c.nf_numero}</li>}
+                      {ehDono && finPor.get(c.id) && c.status !== 'cancelada' && <li><button type="button" className="text-sm underline" onClick={() => setPagar({ fin: finPor.get(c.id)!, conta: c.conta_id })}>Ver pagamentos ({money(finPor.get(c.id)!.pago)} pago de {money(finPor.get(c.id)!.total)})</button></li>}
                     </ul>
                   </td></tr>
                 )}
@@ -150,13 +171,16 @@ export default function Compras() {
         )}
       </Panel>
       <NovaCompra ini={nova} onClose={() => setNova(null)} onSaved={() => { setNova(null); recarregar() }} />
+      <PagarCompra compra={pagar?.fin ?? null} contaSugerida={pagar?.conta} onClose={() => setPagar(null)} onSalvo={() => { setPagar(null); fin.recarregar() }} />
     </div>
   )
 }
 
 function NovaCompra({ ini, onClose, onSaved }: { ini: Ini | null; onClose: () => void; onSaved: () => void }) {
   const toast = useToast()
-  const { modulo } = useAuth()
+  const { modulo, ehDono } = useAuth()
+  const contas = useContas()
+  const [pagoAgora, setPagoAgora] = useState('')
   const [forns, setForns] = useState<Fornecedor[]>([])
   const [mats, setMats] = useState<Material[]>([])
   const [prods, setProds] = useState<Produto[]>([])
@@ -175,6 +199,7 @@ function NovaCompra({ ini, onClose, onSaved }: { ini: Ini | null; onClose: () =>
     setF({ fornecedor_id: ini.fornecedor_id, data: ini.data ?? hoje(), frete: ini.frete ?? '0', outras: ini.outras ?? '0', desconto: ini.desconto ?? '0', rateio: ini.rateio ?? 'valor', nf: ini.nf ?? '', pagamento: ini.pagamento ?? '', conta: ini.conta ?? '' })
     setItens(ini.itens.length ? ini.itens : [{ item: '', qtd: '', preco: '' }])
     setReceberJa(!ini.id)
+    setPagoAgora('')
     setErro(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ini])
@@ -192,6 +217,10 @@ function NovaCompra({ ini, onClose, onSaved }: { ini: Ini | null; onClose: () =>
     if (validos.some((i) => !(parseNum(i.preco) > 0))) return setErro('Informe o preço de cada item. Sem preço o item entra com custo zero e derruba o custo médio.')
     if (!f.data) return setErro('Informe a data da compra.')
     if (total < 0) return setErro('O desconto não pode ser maior que o total da compra.')
+    const pago = ehDono && !ini?.id ? parseNum(pagoAgora) : 0
+    if (pago > Math.round(total * 100) / 100 + 0.009) return setErro('O valor pago não pode passar do total da compra.')
+    const contaPag = f.conta || contas.find((x) => x.padrao)?.id || contas[0]?.id
+    if (pago > 0 && !contaPag) return setErro('Cadastre uma conta em Finanças antes de lançar o pagamento.')
     setBusy(true); setErro(null)
     const cab = {
       fornecedor_id: f.fornecedor_id || null, data: f.data, frete: parseNum(f.frete), outras_despesas: parseNum(f.outras),
@@ -210,6 +239,10 @@ function NovaCompra({ ini, onClose, onSaved }: { ini: Ini | null; onClose: () =>
       return { compra_id: c.data.id, item_tipo: produto ? 'produto' : 'material', produto_id: produto ? i.item.slice(2) : null, material_id: produto ? null : i.item.slice(2), qtd_compra: parseNum(i.qtd), preco_unit_compra: parseNum(i.preco) }
     }))
     if (it.error) { setBusy(false); return setErro(erroMsg(it.error)) }
+    if (pago > 0) {
+      const pg = await supabase.from('compra_pagamento').insert({ compra_id: c.data.id, conta_id: contaPag, data: f.data > hoje() ? hoje() : f.data, valor: pago, observacao: pago < total - 0.009 ? 'Adiantamento' : null })
+      if (pg.error) { setBusy(false); return setErro(`A compra foi lançada, mas o pagamento não: ${erroMsg(pg.error)}. Lance em "Pagar".`) }
+    }
     if (receberJa) {
       const r = await supabase.rpc('receber_compra', { p_compra: c.data.id })
       if (r.error) { setBusy(false); return setErro(erroMsg(r.error)) }
@@ -257,7 +290,15 @@ function NovaCompra({ ini, onClose, onSaved }: { ini: Ini | null; onClose: () =>
         <Field label="Dividir frete por"><Select value={f.rateio} onChange={(e) => setF({ ...f, rateio: e.target.value })}><option value="valor">Valor dos itens</option><option value="quantidade">Quantidade</option></Select></Field>
         <Field label="Nº da nota fiscal"><Input value={f.nf} onChange={(e) => setF({ ...f, nf: e.target.value })} /></Field>
         <Field label="Pagamento"><Select value={f.pagamento} onChange={(e) => setF({ ...f, pagamento: e.target.value })}><option value="">–</option><option>Pix</option><option>Boleto</option><option>Cartão de crédito</option><option>Dinheiro</option></Select></Field>
-        <CampoConta label="Saiu da conta" value={f.conta} onChange={(v) => setF({ ...f, conta: v })} />
+        {ehDono && <CampoConta label="Paga com a conta" value={f.conta} onChange={(v) => setF({ ...f, conta: v })} />}
+        {ehDono && !ini.id && (
+          <Field label="Pago agora (R$)" hint="Vazio se ainda não pagou. Pode ser só o adiantamento.">
+            <div className="flex gap-1.5">
+              <NumInput value={pagoAgora} onChange={setPagoAgora} />
+              <Button size="sm" variant="ghost" onClick={() => setPagoAgora(String(Math.round(total * 100) / 100).replace('.', ','))}>Tudo</Button>
+            </div>
+          </Field>
+        )}
       </div>
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={receberJa} onChange={(e) => setReceberJa(e.target.checked)} /> Já recebi: dar entrada no estoque agora</label>
