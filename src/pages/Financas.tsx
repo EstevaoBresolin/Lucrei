@@ -89,7 +89,7 @@ export default function Financas() {
         </Panel>
       )}
 
-      <div className="grid min-w-0 gap-5 xl:grid-cols-2">
+      <div className="grid min-w-0 gap-5 xl:grid-cols-2 [&>*]:min-w-0">
         <Panel title="A pagar de compras">
           {aPagar.length === 0 ? <Empty title="Nada a pagar">Compras com pagamento em aberto (adiantamento pago e resto pendente, por exemplo) aparecem aqui.</Empty> : (
             <Table head={<tr><th>Compra</th><th className="text-right">Pago</th><th className="text-right">Falta</th><th /></tr>}>
@@ -107,7 +107,7 @@ export default function Financas() {
           <p className="border-t border-line px-4 py-2 text-xs text-muted">O dinheiro sai da conta quando você lança o pagamento, mesmo que a compra ainda não tenha chegado. Receber a compra só dá entrada no estoque.</p>
         </Panel>
 
-        <Panel title="Extrato" actions={<div className="flex gap-2">
+        <Panel title="Extrato" actions={<div className="flex flex-wrap justify-end gap-2">
           {varias && <Select value={filtroConta} onChange={(e) => setFiltroConta(e.target.value)} className="h-8 w-auto text-sm"><option value="">Todas as contas</option>{contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}</Select>}
           <Input type="month" value={mes} onChange={(e) => setMes(e.target.value)} className="h-8 w-auto text-sm" />
         </div>}>
