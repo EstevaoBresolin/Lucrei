@@ -19,7 +19,7 @@ function Cta({ children = 'Testar 30 dias grátis', grande }: { children?: React
   )
 }
 
-/** Exemplo ilustrativo de uma venda aberta no Lucrei (números de exemplo). */
+/** Exemplo ilustrativo de uma venda aberta no Apura (números de exemplo). */
 function VendaExemplo() {
   const linhas: [string, string, string?][] = [
     ['Venda no Mercado Livre', 'R$ 189,90'],
@@ -68,7 +68,7 @@ const PERGUNTAS: [string, string][] = [
   ['Preciso de cartão para testar?', 'Não. Você cria a conta, usa tudo por 30 dias e só assina se fizer sentido.'],
   ['E depois dos 30 dias?', 'Você escolhe um plano e paga por Pix, boleto ou cartão. Se não assinar, a conta fica em modo só leitura: nada é apagado e você volta quando quiser.'],
   ['Como conta o limite de vendas?', 'É por mês: as vendas lançadas no mês, sem contar as canceladas. Cresceu? Troca de plano na hora.'],
-  ['Funciona para quem só revende?', 'Sim. O Lucrei serve para quem revende e para quem fabrica. Você liga só os módulos que usa.'],
+  ['Funciona para quem só revende?', 'Sim. O Apura serve para quem revende e para quem fabrica. Você liga só os módulos que usa.'],
   ['Posso cancelar?', 'Quando quiser, pela própria tela de assinatura. Sem multa e sem ligação.'],
 ]
 
@@ -86,7 +86,7 @@ export default function Landing() {
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
           <div className="led-strip flex items-center gap-2.5 pb-1">
             <img src="/icon.svg" alt="" className="h-8 w-8" />
-            <span className="wide text-xl font-bold tracking-tight">Lucrei</span>
+            <span className="wide text-xl font-bold tracking-tight">Apura <span className="font-medium text-muted">Gestão</span></span>
           </div>
           <nav className="ml-auto flex items-center gap-1 sm:gap-3">
             <a href="#planos" className="hidden px-2 text-sm text-muted hover:text-ink sm:block">Planos</a>
@@ -104,7 +104,7 @@ export default function Landing() {
             Você vende bem.<br />Mas <span className="text-ledink">quanto sobra</span>?
           </h1>
           <p className="mt-5 max-w-xl text-lg text-muted">
-            O Lucrei junta vendas, taxas, frete, estoque e caixa e mostra o lucro de verdade de cada venda. Suas vendas do Mercado Livre entram sozinhas.
+            O Apura junta vendas, taxas, frete, estoque e caixa e mostra o lucro de verdade de cada venda. Suas vendas do Mercado Livre entram sozinhas.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Cta grande />
@@ -118,7 +118,7 @@ export default function Landing() {
       <section className="border-y border-line bg-panel">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
           <h2 className="wide max-w-2xl text-3xl font-bold tracking-tight">Tudo o que a planilha não faz sozinha</h2>
-          <p className="mt-3 max-w-2xl text-muted">Pare de juntar extrato do Mercado Pago, relatório do ML e planilha de custo. O Lucrei faz a conta por você.</p>
+          <p className="mt-3 max-w-2xl text-muted">Pare de juntar extrato do Mercado Pago, relatório do ML e planilha de custo. O Apura faz a conta por você.</p>
           <div className="mt-10 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {RECURSOS.map(({ icon: Icon, titulo, texto }) => (
               <div key={titulo}>
@@ -208,7 +208,7 @@ export default function Landing() {
 
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-6 text-sm text-muted sm:px-6">
-          <span>© {new Date().getFullYear()} Lucrei</span>
+          <span>© {new Date().getFullYear()} Apura Gestão</span>
           <a href="/termos" className="hover:text-ink">Termos de uso</a>
           <a href="/privacidade" className="hover:text-ink">Privacidade</a>
           <Link to="/entrar" className="ml-auto hover:text-ink">Já tenho conta</Link>

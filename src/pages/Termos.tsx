@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { TERMOS_VERSAO } from '../lib/auth'
 
 // Dados do responsável pelo serviço. Troque quando houver CNPJ e e-mail próprios.
-const RESPONSAVEL = 'Lucrei'
+const RESPONSAVEL = 'Apura Gestão'
 const DOCUMENTO = '' // ex.: 'CNPJ 00.000.000/0001-00'
 const CONTATO = 'estevaobresolin@hotmail.com'
 const ATUALIZADO = TERMOS_VERSAO.split('-').reverse().join('/')
@@ -12,14 +12,14 @@ function Pagina({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <Link to="/" className="mb-6 inline-flex items-center gap-2">
-        <img src="/icon.svg" alt="" className="h-8 w-8" /><span className="wide text-lg font-bold">Lucrei</span>
+        <img src="/icon.svg" alt="" className="h-8 w-8" /><span className="wide text-lg font-bold">Apura <span className="font-medium text-muted">Gestão</span></span>
       </Link>
       <h1 className="wide mb-1 text-2xl font-bold">{titulo}</h1>
       <p className="mb-8 text-sm text-muted">Última atualização: {ATUALIZADO}</p>
       <div className="flex flex-col gap-5 text-[15px] leading-relaxed [&_h2]:wide [&_h2]:mt-3 [&_h2]:text-lg [&_h2]:font-semibold [&_li]:ml-5 [&_li]:list-disc">
         {children}
       </div>
-      <p className="mt-10 text-sm text-muted"><Link to="/termos" className="underline">Termos de uso</Link> · <Link to="/privacidade" className="underline">Política de privacidade</Link> · <Link to="/" className="underline">Voltar ao Lucrei</Link></p>
+      <p className="mt-10 text-sm text-muted"><Link to="/termos" className="underline">Termos de uso</Link> · <Link to="/privacidade" className="underline">Política de privacidade</Link> · <Link to="/" className="underline">Voltar ao Apura</Link></p>
     </div>
   )
 }
@@ -29,10 +29,10 @@ const quem = `${RESPONSAVEL}${DOCUMENTO ? `, ${DOCUMENTO}` : ''}`
 export function Termos() {
   return (
     <Pagina titulo="Termos de uso">
-      <p>Estes termos regem o uso do Lucrei, um sistema on-line de gestão de vendas, estoque, custos e finanças para quem vende em marketplaces e em outros canais, oferecido por {quem} ("nós"). Ao criar uma conta ou usar o sistema, você ("usuário") concorda com estes termos. Se não concordar, não use o serviço.</p>
+      <p>Estes termos regem o uso do Apura Gestão ("Apura"), um sistema on-line de gestão de vendas, estoque, custos e finanças para quem vende em marketplaces e em outros canais, oferecido por {quem} ("nós"). Ao criar uma conta ou usar o sistema, você ("usuário") concorda com estes termos. Se não concordar, não use o serviço.</p>
 
       <h2>1. O serviço</h2>
-      <p>O Lucrei permite cadastrar produtos, insumos, compras, vendas e despesas, acompanhar estoque e calcular o lucro de cada venda, além de se conectar, por sua autorização, a contas de marketplaces (como o Mercado Livre) para importar anúncios, pedidos, pagamentos e perguntas.</p>
+      <p>O Apura permite cadastrar produtos, insumos, compras, vendas e despesas, acompanhar estoque e calcular o lucro de cada venda, além de se conectar, por sua autorização, a contas de marketplaces (como o Mercado Livre) para importar anúncios, pedidos, pagamentos e perguntas.</p>
       <p>O serviço está em fase inicial (MVP). Funcionalidades podem mudar, ser incluídas ou retiradas. Faremos o possível para avisar mudanças relevantes com antecedência.</p>
 
       <h2>2. Conta, empresa e usuários</h2>
@@ -44,13 +44,13 @@ export function Termos() {
 
       <h2>3. Integrações com marketplaces</h2>
       <ul>
-        <li>A conexão com o Mercado Livre (e outros canais no futuro) só acontece quando o dono da empresa autoriza, e pode ser desfeita a qualquer momento nas Configurações do Lucrei ou na própria conta do marketplace.</li>
+        <li>A conexão com o Mercado Livre (e outros canais no futuro) só acontece quando o dono da empresa autoriza, e pode ser desfeita a qualquer momento nas Configurações do Apura ou na própria conta do marketplace.</li>
         <li>Usamos o acesso apenas para as funções do sistema: ler anúncios, pedidos, envios, pagamentos e perguntas da conta conectada. Não publicamos, alteramos anúncios nem respondemos clientes em seu nome sem uma ação sua.</li>
         <li>Os marketplaces podem mudar regras, limites e dados disponíveis sem aviso. Não respondemos por indisponibilidades ou alterações dos serviços de terceiros.</li>
       </ul>
 
       <h2>4. Uso permitido</h2>
-      <p>Você se compromete a não usar o Lucrei para atividades ilegais, a não tentar acessar dados de outras empresas, a não sobrecarregar ou atacar o sistema e a não copiar, revender ou fazer engenharia reversa do software.</p>
+      <p>Você se compromete a não usar o Apura para atividades ilegais, a não tentar acessar dados de outras empresas, a não sobrecarregar ou atacar o sistema e a não copiar, revender ou fazer engenharia reversa do software.</p>
 
       <h2>5. Seus dados e responsabilidades</h2>
       <ul>
@@ -81,7 +81,7 @@ export function Termos() {
 export function Privacidade() {
   return (
     <Pagina titulo="Política de privacidade">
-      <p>Esta política explica como o Lucrei, oferecido por {quem}, trata dados pessoais, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, LGPD).</p>
+      <p>Esta política explica como o Apura Gestão, oferecido por {quem}, trata dados pessoais, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, LGPD).</p>
 
       <h2>1. Papéis na LGPD</h2>
       <ul>
@@ -92,7 +92,7 @@ export function Privacidade() {
       <h2>2. Que dados tratamos</h2>
       <ul>
         <li>Cadastro: nome, e-mail e senha (guardada de forma criptografada pelo provedor de autenticação).</li>
-        <li>Assinatura: CPF ou CNPJ de quem paga, plano contratado e situação dos pagamentos. Os dados do cartão são digitados diretamente na página do Asaas e não passam pelo Lucrei.</li>
+        <li>Assinatura: CPF ou CNPJ de quem paga, plano contratado e situação dos pagamentos. Os dados do cartão são digitados diretamente na página do Asaas e não passam pelo Apura.</li>
         <li>Dados de negócio: produtos, insumos, compras, vendas, despesas, saldos e demais informações que você lança.</li>
         <li>Dados vindos do marketplace conectado: anúncios, pedidos, apelido do comprador, envios, valores e datas de liberação de pagamentos e perguntas de clientes.</li>
         <li>Dados técnicos: data e hora de acesso, registros de alterações feitas no sistema (auditoria) e informações necessárias para segurança.</li>

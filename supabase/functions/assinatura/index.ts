@@ -1,4 +1,4 @@
-// Assinatura do Lucrei (cobrança via Asaas). Só o dono da empresa usa — e funciona mesmo com a empresa bloqueada.
+// Assinatura do Apura (cobrança via Asaas). Só o dono da empresa usa — e funciona mesmo com a empresa bloqueada.
 // Ações: assinar (cria ou troca o plano e devolve o link de pagamento), fatura (link da cobrança em aberto) e cancelar.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
@@ -16,7 +16,7 @@ async function asaas(path: string, init: { method?: string; body?: unknown } = {
   if (!key) throw new Error('Cobrança ainda não configurada (ASAAS_API_KEY).')
   const r = await fetch(BASE + path, {
     method: init.method ?? 'GET',
-    headers: { access_token: key, 'Content-Type': 'application/json', 'User-Agent': 'Lucrei' },
+    headers: { access_token: key, 'Content-Type': 'application/json', 'User-Agent': 'ApuraGestao' },
     body: init.body ? JSON.stringify(init.body) : undefined,
   })
   const j = await r.json().catch(() => ({}))
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
     if (acao === 'assinar') {
       const { data: plano } = await db.from('plano').select('*').eq('codigo', codigo).eq('ativo', true).maybeSingle()
       if (!plano) return json({ erro: 'Escolha um plano.' }, 400)
-      const descricao = `Lucrei · Plano ${plano.nome} (até ${plano.limite_vendas} vendas/mês)`
+      const descricao = `Apura Gestão · Plano ${plano.nome} (até ${plano.limite_vendas} vendas/mês)`
 
       // Já assina: só troca o plano (vale também para a cobrança em aberto)
       if (emp.asaas_assinatura_id) {

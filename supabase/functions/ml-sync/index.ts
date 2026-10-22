@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
       const t = await trocarToken({ grant_type: 'authorization_code', code: String(code ?? ''), redirect_uri: REDIRECT_URI })
       if (!t.refresh_token) return json({ erro: 'O aplicativo do Mercado Livre está sem a permissão "offline_access". Ative-a no DevCenter do ML e conecte de novo.' }, 400)
       const { data: outra } = await db.from('ml_conta').select('empresa_id').eq('ml_user_id', t.user_id).neq('empresa_id', empresa).maybeSingle()
-      if (outra) return json({ erro: 'Esta conta do Mercado Livre já está conectada a outra empresa no Lucrei. Desconecte lá antes de conectar aqui.' }, 400)
+      if (outra) return json({ erro: 'Esta conta do Mercado Livre já está conectada a outra empresa no Apura. Desconecte lá antes de conectar aqui.' }, 400)
       const me = await fetch('https://api.mercadolibre.com/users/me', { headers: { Authorization: `Bearer ${t.access_token}` } }).then((r) => r.json()).catch(() => ({}))
       await salvarTokens(db, empresa, t, { nickname: me.nickname ?? null })
       return json({ ok: true })

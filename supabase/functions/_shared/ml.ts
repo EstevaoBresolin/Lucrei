@@ -1,10 +1,10 @@
-// Lucrei × Mercado Livre (compartilhado pelas funções ml-*).
+// Apura × Mercado Livre (compartilhado pelas funções ml-*).
 // Cada empresa conecta a própria conta do ML. Toda leitura/escrita aqui usa service_role
 // (ignora RLS), por isso TODA consulta filtra por empresa_id explicitamente.
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 
 export const APP_ID = Deno.env.get('ML_APP_ID') ?? ''
-export const APP_URL = (Deno.env.get('APP_URL') ?? 'https://lucrei.vercel.app').replace(/\/$/, '')
+export const APP_URL = (Deno.env.get('APP_URL') ?? 'https://apuragestao.com.br').replace(/\/$/, '')
 export const REDIRECT_URI = `${Deno.env.get('SUPABASE_URL')}/functions/v1/ml-oauth`
 const API = 'https://api.mercadolibre.com'
 const MP = 'https://api.mercadopago.com'
@@ -223,7 +223,7 @@ export async function listarAnuncios(db: SupabaseClient, empresa: string) {
 async function enviarEmail(para: string, assunto: string, html: string) {
   const key = Deno.env.get('RESEND_API_KEY')
   if (!key || !para) return
-  const de = Deno.env.get('EMAIL_REMETENTE') ?? 'Lucrei <onboarding@resend.dev>'
+  const de = Deno.env.get('EMAIL_REMETENTE') ?? 'Apura Gestão <onboarding@resend.dev>'
   const r = await fetch('https://api.resend.com/emails', {
     method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ from: de, to: [para], subject: assunto, html }),

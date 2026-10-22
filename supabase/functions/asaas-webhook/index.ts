@@ -1,4 +1,4 @@
-// Avisos do Asaas sobre a assinatura do Lucrei: pagou → libera; atrasou → avisa; cancelou → só leitura após a data paga.
+// Avisos do Asaas sobre a assinatura do Apura: pagou → libera; atrasou → avisa; cancelou → só leitura após a data paga.
 // Autenticado pelo token configurado no webhook do Asaas (header asaas-access-token).
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
   const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
   const pay = ev.payment, sub = ev.subscription
   const assinatura: string | undefined = pay?.subscription ?? sub?.id
-  if (!assinatura) return ok() // cobrança avulsa: não é do Lucrei
+  if (!assinatura) return ok() // cobrança avulsa: não é do Apura
 
   let { data: emp } = await db.from('empresa').select('id').eq('asaas_assinatura_id', assinatura).maybeSingle()
   if (!emp && sub?.externalReference) {

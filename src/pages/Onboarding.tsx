@@ -27,9 +27,9 @@ export function AceitarTermos() {
     await recarregar()
   }
   return (
-    <Moldura sub="Antes de continuar, leia e aceite as regras de uso do Lucrei.">
+    <Moldura sub="Antes de continuar, leia e aceite as regras de uso do Apura.">
       <div className="flex flex-col gap-4 rounded-box border border-line bg-panel p-5 text-sm">
-        <p>Para usar o Lucrei você precisa concordar com os <Link to="/termos" target="_blank" className="font-medium underline">Termos de uso</Link> e
+        <p>Para usar o Apura você precisa concordar com os <Link to="/termos" target="_blank" className="font-medium underline">Termos de uso</Link> e
           com a <Link to="/privacidade" target="_blank" className="font-medium underline">Política de privacidade</Link>, que explicam como seus dados são guardados e usados.</p>
         <label className="flex items-start gap-2"><input type="checkbox" className="mt-0.5" checked={ok} onChange={(e) => setOk(e.target.checked)} /> Li e concordo com os Termos de uso e a Política de privacidade.</label>
         <ErrorBox msg={erro} />
@@ -60,7 +60,7 @@ export function CriarEmpresa() {
     await recarregar()
   }
   return (
-    <Moldura sub="Vamos montar o Lucrei do jeito que sua loja funciona." largo>
+    <Moldura sub="Vamos montar o Apura do jeito que sua loja funciona." largo>
       <div className="flex flex-col gap-5 rounded-box border border-line bg-panel p-5">
         <Field label="Nome da loja ou empresa"><Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Minha Loja" /></Field>
         <div>
@@ -102,7 +102,7 @@ export function Convite({ token }: { token: string }) {
   const descartar = () => { guardarConvite(null); window.location.assign('/') }
 
   return (
-    <Moldura sub="Convite para participar de uma empresa no Lucrei.">
+    <Moldura sub="Convite para participar de uma empresa no Apura.">
       <div className="flex flex-col gap-4 rounded-box border border-line bg-panel p-5 text-sm">
         {info === undefined ? <p className="text-muted">Carregando convite…</p>
           : !info || !info.valido ? (

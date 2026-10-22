@@ -13,7 +13,7 @@ export function Moldura({ children, sub, largo }: { children: ReactNode; sub: st
         <div className="mb-8">
           <a href="/" className="led-strip inline-flex items-center gap-3 pb-2">
             <img src="/icon.svg" alt="" className="h-10 w-10" />
-            <span className="wide text-2xl font-bold tracking-tight">Lucrei</span>
+            <span className="wide text-2xl font-bold tracking-tight">Apura <span className="font-medium text-muted">Gestão</span></span>
           </a>
           <p className="mt-4 text-sm text-muted">{sub}</p>
         </div>

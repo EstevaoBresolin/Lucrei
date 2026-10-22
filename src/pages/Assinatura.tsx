@@ -98,7 +98,7 @@ export default function Assinatura() {
 
   return (
     <>
-      <PageHeader title="Assinatura" sub="Seu plano do Lucrei, cobrança e uso do mês." />
+      <PageHeader title="Assinatura" sub="Seu plano do Apura, cobrança e uso do mês." />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Panel title="Situação" actions={situacao}>

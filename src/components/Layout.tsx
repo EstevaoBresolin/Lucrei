@@ -36,7 +36,7 @@ export default function Layout() {
       <aside className="hidden border-r border-line bg-panel md:flex md:flex-col">
         <div className="led-strip flex h-14 items-center gap-2.5 border-b border-line px-5">
           <img src="/icon.svg" alt="" className="h-7 w-7" />
-          <span className="wide font-bold tracking-tight">Lucrei</span>
+          <span className="wide font-bold tracking-tight">Apura <span className="font-medium text-muted">Gestão</span></span>
         </div>
         <EmpresaSeletor />
         <div className="p-3 pt-0">
@@ -61,7 +61,7 @@ export default function Layout() {
       {/* Topo no celular */}
       <header className="led-strip sticky top-0 z-30 flex h-14 items-center gap-2.5 border-b border-line bg-panel px-4 md:hidden">
         <img src="/icon.svg" alt="" className="h-7 w-7" />
-        <span className="wide font-bold tracking-tight">Lucrei</span>
+        <span className="wide font-bold tracking-tight">Apura <span className="font-medium text-muted">Gestão</span></span>
         <div className="ml-auto min-w-0"><EmpresaSeletor compacto /></div>
       </header>
 
