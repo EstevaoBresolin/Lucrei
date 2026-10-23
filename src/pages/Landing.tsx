@@ -19,35 +19,46 @@ function Cta({ children = 'Testar 30 dias grátis', grande }: { children?: React
   )
 }
 
-/** Vídeo de 40 s no topo: começa sozinho, sem som e em repetição (quem prefere menos movimento vê com controles). */
+/** Vídeo de 40 s no topo: começa sozinho, sem som e em repetição, com botão de pausar. */
 function VideoTopo() {
   const ref = useRef<HTMLVideoElement>(null)
   const [pausado, setPausado] = useState(false)
-  const [calmo, setCalmo] = useState(false)
+  const pausouManual = useRef(false)
   useEffect(() => {
-    const reduz = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    if (reduz) { setCalmo(true); return }
-    ref.current?.play().catch(() => setPausado(true))
+    const v = ref.current
+    if (!v) return
+    // O React não grava o atributo "muted" no HTML, e sem ele alguns navegadores (Safari) recusam o início automático.
+    v.muted = true; v.defaultMuted = true; v.setAttribute('muted', '')
+    const tocar = () => { if (!pausouManual.current && v.paused) v.play().then(() => setPausado(false)).catch(() => setPausado(true)) }
+    tocar()
+    v.addEventListener('canplay', tocar, { once: true })
+    // Bloqueado (ex.: economia de bateria no iPhone): começa no primeiro toque, clique ou rolagem da página.
+    const eventos = ['pointerdown', 'touchstart', 'scroll', 'keydown'] as const
+    const primeiro = () => { tocar(); eventos.forEach((e) => window.removeEventListener(e, primeiro)) }
+    eventos.forEach((e) => window.addEventListener(e, primeiro, { passive: true }))
+    // Volta a tocar quando reaparece na tela (o navegador pode pausar vídeos fora da tela).
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) tocar() }, { threshold: 0.3 })
+    obs.observe(v)
+    return () => { eventos.forEach((e) => window.removeEventListener(e, primeiro)); obs.disconnect() }
   }, [])
   const alternar = () => {
     const v = ref.current
     if (!v) return
-    if (v.paused) { v.play(); setPausado(false) } else { v.pause(); setPausado(true) }
+    if (v.paused) { pausouManual.current = false; v.play().then(() => setPausado(false)).catch(() => setPausado(true)) }
+    else { pausouManual.current = true; v.pause(); setPausado(true) }
   }
   return (
     <div className="relative mx-auto w-full max-w-[290px]">
       <div aria-hidden className="absolute -inset-8 rounded-[40px] bg-led/25 blur-3xl" />
       <video ref={ref} className="relative aspect-[9/16] w-full cursor-pointer rounded-[30px] border-[6px] border-ink bg-ink shadow-2xl"
-        poster="/video/apura-40s.jpg" muted loop playsInline autoPlay={!calmo} controls={calmo}
-        onClick={calmo ? undefined : alternar} aria-label="Vídeo de 40 segundos mostrando o Apura Gestão">
+        poster="/video/apura-40s.jpg" muted loop playsInline autoPlay preload="auto"
+        onClick={alternar} aria-label="Vídeo de 40 segundos mostrando o Apura Gestão">
         <source src="/video/apura-40s.mp4" type="video/mp4" />
         <source src="/video/apura-40s.webm" type="video/webm" />
       </video>
-      {!calmo && (
-        <button type="button" onClick={alternar} className="relative mx-auto mt-3 flex items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1 text-xs font-medium text-muted hover:text-ink">
+      <button type="button" onClick={alternar} className="relative mx-auto mt-3 flex items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1 text-xs font-medium text-muted hover:text-ink">
           {pausado ? <Play size={13} /> : <Pause size={13} />} {pausado ? 'Assistir' : 'Pausar'} · Apura em 40 segundos
         </button>
-      )}
     </div>
   )
 }
