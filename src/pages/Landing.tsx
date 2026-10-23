@@ -1,6 +1,6 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Boxes, Check, Landmark, Layers, PlugZap, ReceiptText, Users } from 'lucide-react'
+import { ArrowRight, Boxes, Check, Landmark, Layers, Pause, Play, PlugZap, ReceiptText, Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 type Plano = { codigo: string; nome: string; preco: number; limite_vendas: number }
@@ -19,38 +19,35 @@ function Cta({ children = 'Testar 30 dias grátis', grande }: { children?: React
   )
 }
 
-/** Exemplo ilustrativo de uma venda aberta no Apura (números de exemplo). */
-function VendaExemplo() {
-  const linhas: [string, string, string?][] = [
-    ['Venda no Mercado Livre', 'R$ 189,90'],
-    ['Tarifa do Mercado Livre', '− R$ 22,79', 'text-muted'],
-    ['Frete pago por você', '− R$ 21,45', 'text-muted'],
-    ['Custo do produto', '− R$ 64,30', 'text-muted'],
-    ['Imposto', '− R$ 11,39', 'text-muted'],
-  ]
+/** Vídeo de 40 s no topo: começa sozinho, sem som e em repetição (quem prefere menos movimento vê com controles). */
+function VideoTopo() {
+  const ref = useRef<HTMLVideoElement>(null)
+  const [pausado, setPausado] = useState(false)
+  const [calmo, setCalmo] = useState(false)
+  useEffect(() => {
+    const reduz = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduz) { setCalmo(true); return }
+    ref.current?.play().catch(() => setPausado(true))
+  }, [])
+  const alternar = () => {
+    const v = ref.current
+    if (!v) return
+    if (v.paused) { v.play(); setPausado(false) } else { v.pause(); setPausado(true) }
+  }
   return (
-    <div className="relative">
-      <div aria-hidden className="absolute -inset-6 rounded-[28px] bg-led/20 blur-3xl" />
-      <div className="relative rounded-xl border border-line bg-panel p-5 shadow-xl sm:p-6">
-        <div className="mb-4 flex items-center justify-between text-xs text-muted">
-          <span className="font-semibold uppercase tracking-wider">Venda #1284</span>
-          <span className="rounded-full bg-led/15 px-2 py-0.5 font-medium text-ledink">entrou sozinha do ML</span>
-        </div>
-        <ul className="space-y-2.5 text-[15px]">
-          {linhas.map(([l, v, c]) => (
-            <li key={l} className="flex justify-between gap-4"><span className={c}>{l}</span><span className={`num ${c ?? 'font-medium'}`}>{v}</span></li>
-          ))}
-        </ul>
-        <div className="led-strip mt-4 border-t border-line pt-4" />
-        <div className="mt-5 flex items-end justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Lucro de verdade</p>
-            <p className="wide num text-3xl font-bold text-good">R$ 69,97</p>
-          </div>
-          <p className="num rounded-box bg-good/10 px-2.5 py-1 text-sm font-semibold text-good">36,8% de margem</p>
-        </div>
-      </div>
-      <p className="relative mt-3 text-center text-xs text-muted">Exemplo ilustrativo</p>
+    <div className="relative mx-auto w-full max-w-[290px]">
+      <div aria-hidden className="absolute -inset-8 rounded-[40px] bg-led/25 blur-3xl" />
+      <video ref={ref} className="relative aspect-[9/16] w-full cursor-pointer rounded-[30px] border-[6px] border-ink bg-ink shadow-2xl"
+        poster="/video/apura-40s.jpg" muted loop playsInline autoPlay={!calmo} controls={calmo}
+        onClick={calmo ? undefined : alternar} aria-label="Vídeo de 40 segundos mostrando o Apura Gestão">
+        <source src="/video/apura-40s.mp4" type="video/mp4" />
+        <source src="/video/apura-40s.webm" type="video/webm" />
+      </video>
+      {!calmo && (
+        <button type="button" onClick={alternar} className="relative mx-auto mt-3 flex items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1 text-xs font-medium text-muted hover:text-ink">
+          {pausado ? <Play size={13} /> : <Pause size={13} />} {pausado ? 'Assistir' : 'Pausar'} · Apura em 40 segundos
+        </button>
+      )}
     </div>
   )
 }
@@ -111,24 +108,7 @@ export default function Landing() {
             <span className="text-sm text-muted">Sem cartão de crédito · cancela quando quiser</span>
           </div>
         </div>
-        <VendaExemplo />
-      </section>
-
-      {/* Vídeo */}
-      <section className="mx-auto grid max-w-5xl items-center gap-10 px-4 pb-16 sm:px-6 md:grid-cols-[1fr_340px] md:pb-24">
-        <div className="order-2 md:order-1">
-          <h2 className="wide text-3xl font-bold tracking-tight">Veja em 40 segundos</h2>
-          <p className="mt-3 max-w-lg text-muted">Uma venda de R$ 119,90 no Mercado Livre deixou R$ 29,45 de lucro. O vídeo mostra como o Apura chega nesse número e o que mais ele acompanha por você.</p>
-          <ul className="mt-6 space-y-2.5 text-[15px]">
-            {['Lucro real de cada venda, com taxa, frete, imposto e custo descontados', 'Painel do mês com lucro, margem e para onde vai o dinheiro', 'Estoque que baixa sozinho e avisa antes de faltar', 'Saldo das contas e o que falta pagar aos fornecedores'].map((t) => (
-              <li key={t} className="flex gap-2.5"><Check size={18} className="mt-0.5 shrink-0 text-ledink" />{t}</li>
-            ))}
-          </ul>
-          <div className="mt-8"><Cta /></div>
-        </div>
-        <div className="order-1 mx-auto w-full max-w-[300px] md:order-2">
-          <video className="aspect-[9/16] w-full rounded-[28px] border-[6px] border-ink bg-ink shadow-xl" src="/video/apura-40s.mp4" poster="/video/apura-40s.jpg" controls playsInline preload="none" aria-label="Vídeo de 40 segundos mostrando o Apura Gestão" />
-        </div>
+        <VideoTopo />
       </section>
 
       {/* Recursos */}
