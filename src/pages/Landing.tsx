@@ -114,6 +114,23 @@ export default function Landing() {
         <VendaExemplo />
       </section>
 
+      {/* Vídeo */}
+      <section className="mx-auto grid max-w-5xl items-center gap-10 px-4 pb-16 sm:px-6 md:grid-cols-[1fr_340px] md:pb-24">
+        <div className="order-2 md:order-1">
+          <h2 className="wide text-3xl font-bold tracking-tight">Veja em 40 segundos</h2>
+          <p className="mt-3 max-w-lg text-muted">Uma venda de R$ 119,90 no Mercado Livre deixou R$ 29,45 de lucro. O vídeo mostra como o Apura chega nesse número e o que mais ele acompanha por você.</p>
+          <ul className="mt-6 space-y-2.5 text-[15px]">
+            {['Lucro real de cada venda, com taxa, frete, imposto e custo descontados', 'Painel do mês com lucro, margem e para onde vai o dinheiro', 'Estoque que baixa sozinho e avisa antes de faltar', 'Saldo das contas e o que falta pagar aos fornecedores'].map((t) => (
+              <li key={t} className="flex gap-2.5"><Check size={18} className="mt-0.5 shrink-0 text-ledink" />{t}</li>
+            ))}
+          </ul>
+          <div className="mt-8"><Cta /></div>
+        </div>
+        <div className="order-1 mx-auto w-full max-w-[300px] md:order-2">
+          <video className="aspect-[9/16] w-full rounded-[28px] border-[6px] border-ink bg-ink shadow-xl" src="/video/apura-40s.mp4" poster="/video/apura-40s.jpg" controls playsInline preload="none" aria-label="Vídeo de 40 segundos mostrando o Apura Gestão" />
+        </div>
+      </section>
+
       {/* Recursos */}
       <section className="border-y border-line bg-panel">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
