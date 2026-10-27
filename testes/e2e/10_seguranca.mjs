@@ -99,13 +99,11 @@ for (const f of ['importar_venda_ml', 'ml_cancelar_venda', 'ml_mudar_status']) {
   ok(r.s >= 400, `Função interna ${f} (recebe a empresa por parâmetro) não pode ser chamada logado`, String(r.s))
 }
 
-// ---------- 4. Teste grátis em série ----------
-secao('Teste grátis infinito criando empresas')
-const E2 = (await rpc(hB, 'criar_empresa', { p_nome: 'Seg B2', p_tipo: 'revenda' })).j
-ok(SQL(`select teste_ate <= now() + interval '1 minute' from empresa where id='${E2}'`) === 't', 'Segunda empresa do mesmo usuário não ganha outros 30 dias')
-ok(SQL(`select teste_ate > now() + interval '29 days' from empresa where id='${EB}'`) === 't', 'A primeira continua com 30 dias')
-let r10; for (let i = 0; i < 10; i++) r10 = await rpc(hB, 'criar_empresa', { p_nome: 'Spam ' + i, p_tipo: 'revenda' })
-ok(r10.s >= 400, 'Limite de empresas por usuário (não dá para criar sem fim)', r10.j?.message)
+// ---------- 4. Uma empresa por conta ----------
+secao('Uma empresa por conta (sem teste grátis infinito)')
+const r2 = await rpc(hB, 'criar_empresa', { p_nome: 'Seg B2', p_tipo: 'revenda' })
+ok(r2.s >= 400 && /já tem uma empresa/.test(JSON.stringify(r2.j)), 'Segunda empresa do mesmo usuário é recusada', r2.j?.message)
+ok(SQL(`select count(*) from empresa where nome='Seg B2'`) === '0' && SQL(`select teste_ate > now() + interval '29 days' from empresa where id='${EB}'`) === 't', 'A primeira continua com 30 dias e nada foi criado')
 const longo = await rpc(hA, 'criar_empresa', { p_nome: 'x'.repeat(500), p_tipo: 'revenda' })
 ok(longo.s >= 400, 'Nome de empresa gigante é recusado', String(longo.s))
 

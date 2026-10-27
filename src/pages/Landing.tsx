@@ -183,7 +183,7 @@ export default function Landing() {
               )
             })}
           </div>
-          <p className="mt-6 text-center text-sm text-muted">Pague por Pix, boleto ou cartão. Mais de 1.000 vendas por mês? <a href="mailto:estevaobresolin@hotmail.com" className="underline hover:text-ink">Fale com a gente</a>.</p>
+          <p className="mt-6 text-center text-sm text-muted">Pague por Pix, boleto ou cartão. Mais de 1.000 vendas por mês? <a href="mailto:contato@apuragestao.com.br" className="underline hover:text-ink">Fale com a gente</a>.</p>
         </div>
       </section>
 

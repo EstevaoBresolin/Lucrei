@@ -23,14 +23,10 @@ export default function FaixaAssinatura() {
     msg = <><b>Pagamento atrasado</b>{a.cobranca_vencimento ? ` desde ${dataBR(a.cobranca_vencimento)}` : ''}. Pague para não ficar em modo só leitura.</>
     botao = acao('Pagar agora')
   } else if (a.situacao === 'teste') {
-    if (a.assinada) {
-      msg = <><b>Assinatura feita.</b> Você segue no teste grátis até {dataBR(a.teste_ate)}; a 1ª cobrança vence nesse dia.</>
-    } else {
-      const fim = a.dias_teste <= 5
-      if (fim) tom = 'bg-warn/10 text-warn border-warn/30'
-      msg = <><b>Teste grátis:</b> {a.dias_teste <= 1 ? 'último dia' : `faltam ${a.dias_teste} dias`}. Assine para continuar lançando depois de {dataBR(a.teste_ate)}.</>
-      botao = acao('Ver planos')
-    }
+    if (a.assinada) return null // já assinou durante o teste: nada a avisar
+    if (a.dias_teste <= 5) tom = 'bg-warn/10 text-warn border-warn/30'
+    msg = <><b>Teste grátis:</b> {a.dias_teste <= 1 ? 'último dia' : `faltam ${a.dias_teste} dias`}. Assine para continuar lançando depois de {dataBR(a.teste_ate)}.</>
+    botao = acao('Ver planos')
   } else if (a.situacao === 'cancelada') {
     tom = 'bg-line/50 text-ink border-line'
     msg = <><b>Assinatura cancelada.</b> Você usa normalmente até {dataBR(a.pago_ate)}; depois a conta fica só leitura.</>

@@ -56,22 +56,16 @@ ok(leak.produto === 0 && leak.venda === 0 && leak.material === 0 && leak.cliente
 ok(SQL(`select nome from produto where id='${fid}'`) === 'Fone Bluetooth X', 'Produto da outra empresa intacto')
 await o.b.close()
 
-secao('Segunda empresa do mesmo dono')
+secao('Uma empresa por conta')
 await page.goto(APP + '/'); await espera(1200)
-await page.locator('aside').getByRole('button', { name: /Fábrica Teste/ }).click(); await espera(500)
-const nova = page.getByRole('button', { name: /Nova empresa|Criar outra empresa|Adicionar empresa/ })
-if (await nova.count()) {
-  await nova.first().click(); const d = dialog(page)
-  await d.getByRole('button', { name: /Criar/ }).click()
-  ok(/Dê um nome à empresa/.test(await textoErro(d)), 'Nova empresa sem nome é bloqueada')
-  await d.getByLabel('Nome').fill('Segunda Loja'); await d.getByText(/revendo|Revenda/).first().click().catch(() => {})
-  await d.getByRole('button', { name: /Criar/ }).click(); await espera(3000)
-  ok(/Segunda Loja/.test(await page.locator('aside').innerText()), 'Cria e troca para a segunda empresa')
-  ok(!/Fone Bluetooth X/.test(await (await page.goto(APP + '/produtos'), espera(1200), page.locator('main')).innerText()), 'Segunda empresa começa vazia')
-  await page.locator('aside').getByRole('button', { name: /Segunda Loja/ }).click(); await espera(400)
-  await page.getByRole('button', { name: /Fábrica Teste/ }).last().click(); await espera(3000)
-  ok(/Fábrica Teste/.test(await page.locator('aside').innerText()), 'Troca de volta para a primeira')
-} else nota('Segunda empresa', 'botão de nova empresa não encontrado no seletor')
+ok(!(await page.getByRole('button', { name: /Nova empresa|Criar outra empresa|Adicionar empresa/ }).count()), 'Não existe opção de criar outra empresa')
+ok(/Fábrica Teste/.test(await page.locator('aside').innerText()), 'Nome da empresa continua no menu')
+const seg = await page.evaluate(async () => {
+  const k = Object.keys(localStorage).find((x) => x.includes('auth-token')); const s = JSON.parse(localStorage.getItem(k))
+  const r = await fetch('http://localhost:54321/rest/v1/rpc/criar_empresa', { method: 'POST', headers: { apikey: s.access_token, Authorization: 'Bearer ' + s.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_nome: 'Segunda Loja', p_tipo: 'revenda' }) })
+  return { s: r.status, t: await r.text() }
+})
+ok(seg.s >= 400 && /já tem uma empresa/.test(seg.t), 'Nem pela API dá para criar uma segunda empresa', seg.t.slice(0, 90))
 
 secao('Minha conta e sair')
 await page.goto(APP + '/'); await espera(1000)

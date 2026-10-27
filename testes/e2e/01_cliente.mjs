@@ -68,8 +68,8 @@ const link2 = ultimoEmail(EMAIL)?.match(/http:\/\/localhost:54321\/auth\/v1\/ver
 nota('Reenvio no cadastro repetido', link2 !== link ? 'um novo link foi enviado e o anterior deixou de valer (comportamento padrão do Supabase)' : 'mesmo link')
 await page.goto(link2)
 await page.waitForURL(APP + '/**', { timeout: 15000 })
-await page.getByText('Vamos montar o Lucrei').waitFor({ timeout: 15000 }).catch(() => {})
-ok(await page.getByText('Vamos montar o Lucrei').isVisible(), 'Link do e-mail confirma e entra direto (termos já aceitos no cadastro)')
+await page.getByText('Vamos montar o Apura').waitFor({ timeout: 15000 }).catch(() => {})
+ok(await page.getByText('Vamos montar o Apura').isVisible(), 'Link do e-mail confirma e entra direto (termos já aceitos no cadastro)')
 await shot(page, '02-criar-empresa')
 await page.getByRole('button', { name: 'Criar minha empresa' }).click()
 ok(await page.getByText('Dê um nome à sua loja').isVisible(), 'Empresa sem nome é bloqueada')
@@ -112,7 +112,7 @@ ok(sub?.nextDueDate === fimTeste, '1ª cobrança vence no fim do teste (não per
 ok(asaas.clientes[0]?.cpfCnpj === '12345678909' && asaas.clientes[0]?.email === EMAIL, 'Cliente criado no Asaas com CPF e e-mail')
 // volta ao sistema antes de pagar
 await page.goto(APP + '/assinatura'); await page.getByText('Situação').waitFor()
-ok(/Assinatura feita/.test(await page.locator('main').innerText()), 'Faixa: assinatura feita, segue no teste')
+ok(!/Assinatura feita|Teste grátis:/.test(await page.locator('main').innerText()), 'Depois de assinar no teste, a faixa de aviso some')
 // pagar
 await page.goto(Object.values(asaas.pagamentos)[0].invoiceUrl)
 await page.getByRole('link', { name: 'Pagar com Pix' }).click()

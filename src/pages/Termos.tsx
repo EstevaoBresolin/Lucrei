@@ -2,10 +2,10 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { TERMOS_VERSAO } from '../lib/auth'
 
-// Dados do responsável pelo serviço. Troque quando houver CNPJ e e-mail próprios.
+// Dados do responsável pelo serviço. Preencha DOCUMENTO quando houver CNPJ.
 const RESPONSAVEL = 'Apura Gestão'
 const DOCUMENTO = '' // ex.: 'CNPJ 00.000.000/0001-00'
-const CONTATO = 'estevaobresolin@hotmail.com'
+const CONTATO = 'contato@apuragestao.com.br'
 const ATUALIZADO = TERMOS_VERSAO.split('-').reverse().join('/')
 
 function Pagina({ titulo, children }: { titulo: string; children: ReactNode }) {
@@ -38,7 +38,7 @@ export function Termos() {
       <h2>2. Conta, empresa e usuários</h2>
       <ul>
         <li>Você deve informar dados verdadeiros e manter sua senha em segredo. Atividades feitas com seu login são de sua responsabilidade.</li>
-        <li>Cada conta pode criar uma ou mais empresas. Quem cria a empresa é o <b>dono</b> e pode convidar outras pessoas com os papéis de dono, operador ou só leitura. O dono é responsável por quem convida e pelos acessos que concede.</li>
+        <li>Cada conta pode cadastrar uma empresa. Quem cadastra a empresa é o <b>dono</b> e pode convidar outras pessoas com os papéis de dono, operador ou só leitura. O dono é responsável por quem convida e pelos acessos que concede.</li>
         <li>Os dados de cada empresa ficam separados dos de outras empresas. Um usuário só vê os dados das empresas das quais participa.</li>
       </ul>
 
@@ -62,7 +62,7 @@ export function Termos() {
       <p>Buscamos manter o sistema disponível e os dados protegidos, com cópias de segurança, mas não garantimos funcionamento ininterrupto ou livre de erros. Na máxima extensão permitida pela lei, não respondemos por lucros cessantes, perda de vendas ou danos indiretos decorrentes do uso ou da indisponibilidade do serviço.</p>
 
       <h2>7. Planos e pagamento</h2>
-      <p>Toda empresa nova tem 30 dias de teste grátis, com todos os recursos e sem precisar de cartão. Depois disso, o uso continua mediante assinatura mensal de um dos planos exibidos no site, que variam conforme o número de vendas lançadas por mês (sem contar canceladas). Nenhuma cobrança é feita sem que você escolha e contrate um plano.</p>
+      <p>Cada empresa cadastrada tem 30 dias de teste grátis, com todos os recursos e sem precisar de cartão. Depois disso, o uso continua mediante assinatura mensal de um dos planos exibidos no site, que variam conforme o número de vendas lançadas por mês (sem contar canceladas). Nenhuma cobrança é feita sem que você escolha e contrate um plano.</p>
       <p>A cobrança é feita pelo Asaas, por Pix, boleto ou cartão, e renova todo mês até ser cancelada. Você pode trocar de plano ou cancelar a qualquer momento na tela de Assinatura, sem multa; após o cancelamento, o acesso continua até o fim do período já pago.</p>
       <p>Se o teste acabar sem assinatura, ou se uma cobrança ficar em aberto por mais de 3 dias após o vencimento, a conta passa para o modo só leitura: os dados continuam guardados e visíveis, mas não é possível lançar nem alterar informações até o pagamento. Se o volume de vendas passar do limite do plano, avisaremos para que você troque de plano. Os preços podem ser reajustados com aviso prévio de pelo menos 30 dias.</p>
 
@@ -107,7 +107,7 @@ export function Privacidade() {
       <p>Não vendemos dados pessoais e não os usamos para publicidade de terceiros.</p>
 
       <h2>4. Com quem compartilhamos</h2>
-      <p>Apenas com fornecedores necessários para o funcionamento do serviço, que seguem obrigações de segurança: hospedagem e banco de dados (Supabase), publicação do site (Vercel), envio de e-mails (Resend), cobrança das assinaturas (Asaas) e o marketplace que você conectar (Mercado Livre). Alguns desses fornecedores podem armazenar dados fora do Brasil, com as garantias previstas na LGPD. Também podemos compartilhar dados quando exigido por lei ou ordem judicial.</p>
+      <p>Apenas com fornecedores necessários para o funcionamento do serviço, que seguem obrigações de segurança: hospedagem e banco de dados (Supabase), publicação do site (Vercel), envio de e-mails (Resend), avisos no celular pelo ntfy (só quando você ativa, com o texto da pergunta e o nome do anúncio), cobrança das assinaturas (Asaas) e o marketplace que você conectar (Mercado Livre). Alguns desses fornecedores podem armazenar dados fora do Brasil, com as garantias previstas na LGPD. Também podemos compartilhar dados quando exigido por lei ou ordem judicial.</p>
 
       <h2>5. Por quanto tempo guardamos</h2>
       <p>Enquanto a conta e a empresa estiverem ativas. Após pedido de exclusão, apagamos os dados em até 30 dias, exceto o que a lei obrigar a manter (por exemplo, registros de acesso por 6 meses). Cópias de segurança são sobrescritas no ciclo normal de backup.</p>
@@ -121,8 +121,8 @@ export function Privacidade() {
       <h2>8. Cookies e armazenamento no navegador</h2>
       <p>Usamos apenas o armazenamento necessário para manter você conectado e lembrar preferências simples. Não usamos cookies de publicidade.</p>
 
-      <h2>9. Contato do encarregado (DPO)</h2>
-      <p>Pedidos e dúvidas sobre privacidade: <a className="underline" href={`mailto:${CONTATO}`}>{CONTATO}</a>.</p>
+      <h2>9. Canal de privacidade</h2>
+      <p>Pedidos e dúvidas sobre privacidade, inclusive o exercício dos direitos acima, devem ser enviados para <a className="underline" href={`mailto:${CONTATO}`}>{CONTATO}</a>.</p>
 
       <h2>10. Alterações</h2>
       <p>Esta política pode ser atualizada. Mudanças relevantes serão avisadas no sistema e, quando necessário, pediremos um novo aceite.</p>
