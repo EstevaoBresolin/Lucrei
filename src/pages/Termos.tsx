@@ -107,7 +107,7 @@ export function Privacidade() {
       <p>Não vendemos dados pessoais e não os usamos para publicidade de terceiros.</p>
 
       <h2>4. Com quem compartilhamos</h2>
-      <p>Apenas com fornecedores necessários para o funcionamento do serviço, que seguem obrigações de segurança: hospedagem e banco de dados (Supabase), publicação do site (Vercel), envio de e-mails (Resend), avisos no celular pelo ntfy (só quando você ativa, com o texto da pergunta e o nome do anúncio), cobrança das assinaturas (Asaas) e o marketplace que você conectar (Mercado Livre). Alguns desses fornecedores podem armazenar dados fora do Brasil, com as garantias previstas na LGPD. Também podemos compartilhar dados quando exigido por lei ou ordem judicial.</p>
+      <p>Apenas com fornecedores necessários para o funcionamento do serviço, que seguem obrigações de segurança: hospedagem e banco de dados (Supabase), publicação do site (Vercel), envio de e-mails (Resend), avisos no celular pelo ntfy (só quando você ativa, com o texto da pergunta e o nome do anúncio), cobrança das assinaturas (Asaas), medição dos nossos anúncios (Meta, pelo Pixel do Facebook, só nas páginas do site) e o marketplace que você conectar (Mercado Livre). Alguns desses fornecedores podem armazenar dados fora do Brasil, com as garantias previstas na LGPD. Também podemos compartilhar dados quando exigido por lei ou ordem judicial.</p>
 
       <h2>5. Por quanto tempo guardamos</h2>
       <p>Enquanto a conta e a empresa estiverem ativas. Após pedido de exclusão, apagamos os dados em até 30 dias, exceto o que a lei obrigar a manter (por exemplo, registros de acesso por 6 meses). Cópias de segurança são sobrescritas no ciclo normal de backup.</p>
@@ -119,7 +119,7 @@ export function Privacidade() {
       <p>Você pode pedir confirmação de tratamento, acesso, correção, portabilidade, anonimização ou exclusão dos seus dados, além de informações sobre compartilhamento e revogação de consentimento. Para dados de clientes cadastrados por uma empresa, o pedido deve ser feito à própria empresa, e nós a apoiaremos no atendimento.</p>
 
       <h2>8. Cookies e armazenamento no navegador</h2>
-      <p>Usamos apenas o armazenamento necessário para manter você conectado e lembrar preferências simples. Não usamos cookies de publicidade.</p>
+      <p>Usamos o armazenamento necessário para manter você conectado e lembrar preferências simples. Também usamos o Pixel do Meta (Facebook e Instagram) para saber quais anúncios trouxeram visitas, cadastros e inícios de teste, e para mostrar nossos anúncios a pessoas com perfil parecido. O Pixel registra a página visitada e esses eventos, junto com identificadores do navegador; não enviamos ao Meta os dados que você lança no sistema (vendas, produtos, clientes, finanças). Você pode bloquear esse rastreamento pelas configurações do seu navegador, por bloqueadores de anúncios ou nas preferências de anúncios da sua conta do Facebook e do Instagram.</p>
 
       <h2>9. Canal de privacidade</h2>
       <p>Pedidos e dúvidas sobre privacidade, inclusive o exercício dos direitos acima, devem ser enviados para <a className="underline" href={`mailto:${CONTATO}`}>{CONTATO}</a>.</p>

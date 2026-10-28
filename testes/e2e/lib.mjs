@@ -35,7 +35,7 @@ export const SQL = (q) => execSync(`psql -h /var/tmp/pgtest -p 54329 -U postgres
 const KEYS = Object.fromEntries(fs.readFileSync('/tmp/claude-0/e2e/env.sh', 'utf8').split('\n').filter(Boolean).map((l) => l.replace('export ', '').split('=')).map(([k, ...v]) => [k, v.join('=').replace(/'/g, '')]))
 export async function novoUsuario(email, senha = 'Senha@123', nome = 'Teste') {
   const r = await fetch('http://localhost:54321/auth/v1/admin/users', { method: 'POST', headers: { Authorization: `Bearer ${KEYS.SERVICE_KEY}`, apikey: KEYS.SERVICE_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password: senha, email_confirm: true, user_metadata: { nome, termos_versao: '2026-10-27' } }) })
+    body: JSON.stringify({ email, password: senha, email_confirm: true, user_metadata: { nome, termos_versao: '2026-10-28' } }) })
   return r.json()
 }
 export async function entrar(page, email, senha = 'Senha@123') {

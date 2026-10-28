@@ -3,6 +3,7 @@ import { supabase, erroMsg } from '../lib/supabase'
 import { TERMOS_VERSAO, URL_APP, useAuth } from '../lib/auth'
 import { guardarConvite } from './Onboarding'
 import { Button, ErrorBox, Field, Input } from '../components/ui'
+import { idEvento, rastrear } from '../lib/metaPixel'
 
 type Modo = 'entrar' | 'criar' | 'esqueci'
 
@@ -59,7 +60,11 @@ export default function Login({ convite, inicio }: { convite?: string | null; in
       if (error) setErro(error.message.includes('already registered') ? 'Este e-mail já tem conta. Use "Voltar para entrar" ou "Esqueci minha senha".' : erroMsg(error))
       // Com e-mail já cadastrado o Supabase responde "ok" sem identidades, por segurança.
       else if (data.user && data.user.identities?.length === 0) setErro('Este e-mail já tem conta. Use "Voltar para entrar" ou "Esqueci minha senha".')
-      else if (!data.session) setAviso('Conta criada. Confirme pelo link enviado ao seu e-mail e depois entre.')
+      else {
+        // Conta criada de verdade (sem erro e não era um e-mail já cadastrado)
+        rastrear('CompleteRegistration', { content_name: convite ? 'convite' : 'teste_gratis', status: true }, await idEvento(`cadastro:${email}`))
+        if (!data.session) setAviso('Conta criada. Confirme pelo link enviado ao seu e-mail e depois entre.')
+      }
     } else {
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${URL_APP}/` })
       if (error) setErro(erroMsg(error))

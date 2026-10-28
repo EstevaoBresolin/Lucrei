@@ -5,6 +5,7 @@ import { supabase, erroMsg } from '../lib/supabase'
 import { PAPEL, TERMOS_VERSAO, useAuth, type Papel, type TipoNegocio } from '../lib/auth'
 import { Button, ErrorBox, Field, Input } from '../components/ui'
 import { Moldura } from './Login'
+import { rastrear } from '../lib/metaPixel'
 
 const CHAVE_CONVITE = 'lucrei_convite'
 export function conviteGuardado(): string | null {
@@ -55,8 +56,10 @@ export function CriarEmpresa() {
   async function criar() {
     if (!nome.trim()) return setErro('Dê um nome à sua loja ou empresa.')
     if (!tipo) return setErro('Escolha como você trabalha.')
-    const { error } = await supabase.rpc('criar_empresa', { p_nome: nome.trim(), p_tipo: tipo })
+    const { data: empresaId, error } = await supabase.rpc('criar_empresa', { p_nome: nome.trim(), p_tipo: tipo })
     if (error) return setErro(erroMsg(error))
+    // Empresa criada: começou o teste grátis de 30 dias (evento principal para otimizar os anúncios)
+    rastrear('StartTrial', { value: 0, currency: 'BRL', predicted_ltv: 99 * 12, content_name: tipo }, `teste:${empresaId}`)
     await recarregar()
   }
   return (

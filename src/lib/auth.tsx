@@ -20,7 +20,7 @@ export type Assinatura = {
 }
 
 /** Versão dos termos de uso e da política de privacidade. Mudou o texto? Aumente aqui: todos aceitam de novo. */
-export const TERMOS_VERSAO = '2026-10-27'
+export const TERMOS_VERSAO = '2026-10-28'
 
 type Ctx = {
   session: Session | null; carregando: boolean; nome: string
