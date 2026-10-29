@@ -5,6 +5,7 @@ import { useAuth } from '../lib/auth'
 import { useLoad } from '../lib/useQuery'
 import { docValido } from '../lib/fmt'
 import { Badge, Button, ErrorBox, Field, Input, PageHeader, Panel, useConfirm, useToast } from '../components/ui'
+import { rastrear } from '../lib/metaPixel'
 
 type Plano = { codigo: string; nome: string; preco: number; limite_vendas: number }
 const brl = (n: number) => Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -29,7 +30,7 @@ function mascaraDoc(v: string) {
 }
 
 export default function Assinatura() {
-  const { assinatura: a, recarregarAssinatura, ehDono } = useAuth()
+  const { assinatura: a, recarregarAssinatura, ehDono, empresa } = useAuth()
   const toast = useToast()
   const confirmar = useConfirm()
   const planos = useLoad<Plano[]>(() => supabase.from('plano').select('codigo, nome, preco, limite_vendas').eq('ativo', true).order('ordem'), [])
@@ -59,6 +60,11 @@ export default function Assinatura() {
     setBusy(true)
     try {
       const r = await chamar('assinar', { plano: plano.codigo, documento: digitos })
+      if (!r.trocou) {
+        // Assinatura criada no Asaas: a pessoa vai para a página de pagamento (Meta Pixel: começou a pagar)
+        rastrear('InitiateCheckout', { value: Number(plano.preco), currency: 'BRL', content_name: plano.nome, content_ids: [plano.codigo], num_items: 1 }, `checkout:${empresa?.id}:${plano.codigo}`)
+        await new Promise((ok) => setTimeout(ok, 400)) // dá tempo de o evento sair antes de trocar de página
+      }
       await recarregarAssinatura()
       if (r.trocou) toast(`Plano trocado para ${plano.nome}.`)
       if (r.url && (!r.trocou || a!.situacao !== 'ativa')) window.location.href = r.url

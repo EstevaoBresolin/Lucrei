@@ -15,7 +15,7 @@ export async function idEvento(base: string) {
   }
 }
 
-export function rastrear(evento: 'CompleteRegistration' | 'StartTrial' | 'Subscribe', params: Record<string, unknown>, eventID: string) {
+export function rastrear(evento: 'CompleteRegistration' | 'StartTrial' | 'InitiateCheckout' | 'Subscribe', params: Record<string, unknown>, eventID: string) {
   try {
     const fbq = (window as unknown as { fbq?: Fbq }).fbq
     if (typeof fbq !== 'function') return // bloqueador de anúncios, por exemplo: o sistema segue normal
