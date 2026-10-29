@@ -1,11 +1,26 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
+import { rastrear } from '../lib/metaPixel'
 
 const dataBR = (d: string | null) => (d ? new Date(d.length === 10 ? d + 'T12:00:00' : d).toLocaleDateString('pt-BR') : '')
 
 /** Faixa no topo: dias de teste, cobrança atrasada, modo só leitura ou limite do plano estourado. */
 export default function FaixaAssinatura() {
-  const { assinatura: a, ehDono } = useAuth()
+  const { assinatura: a, ehDono, empresa } = useAuth()
+
+  // Meta Pixel: o pagamento acontece no Asaas e só o servidor fica sabendo na hora. Quando a pessoa
+  // volta ao sistema com a 1ª mensalidade já paga (pago_ate preenchido pelo aviso do Asaas), registra
+  // a assinatura. O eventID é fixo por empresa: o Meta conta uma vez só (renovações e outros aparelhos não repetem).
+  const pago = !!a?.pago_ate && a.situacao !== 'cortesia'
+  useEffect(() => {
+    if (!pago || !empresa || !a) return
+    const chave = `apura_subscribe_${empresa.id}`
+    try { if (localStorage.getItem(chave)) return } catch { /* sem armazenamento: o eventID fixo evita duplicar */ }
+    rastrear('Subscribe', { value: Number(a.preco ?? 0), currency: 'BRL', predicted_ltv: Number(a.preco ?? 0) * 12, content_name: a.plano_nome ?? a.plano }, `assinatura:${empresa.id}`)
+    try { localStorage.setItem(chave, '1') } catch { /* ignora */ }
+  }, [pago, empresa?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!a || a.situacao === 'cortesia') return null
 
   const acao = (texto: string) => ehDono
