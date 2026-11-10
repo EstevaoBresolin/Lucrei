@@ -22,6 +22,7 @@ if (emp) {
   ok(SQL(`select pago_ate from empresa where id='${id}'`) === '2026-11-05', 'Aviso repetido (mesmo id) não é processado duas vezes')
   r = await fetch(F + '/asaas-webhook', { method: 'POST', headers: h, body: JSON.stringify({ id: 'evt_del' + R, event: 'SUBSCRIPTION_DELETED', subscription: { id: 'sub_teste', externalReference: id } }) })
   ok(SQL(`select status||' '||coalesce(asaas_assinatura_id,'-') from empresa where id='${id}'`) === 'cancelada -', 'Assinatura removida no Asaas cancela no Lucrei')
+  SQL(`update empresa set pago_ate = current_date + 10 where id='${id}'`) // datas fixas do teste ficam no passado com o tempo
   ok(SQL(`select empresa_liberada('${id}')`) === 't', 'Cancelada continua liberada até a data paga')
 } else nota('Webhook do Asaas', 'empresa da jornada 01 não encontrada')
 
