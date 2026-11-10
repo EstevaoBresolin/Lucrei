@@ -17,12 +17,13 @@ import Financeiro from './pages/Financeiro'
 import Financas from './pages/Financas'
 import Config from './pages/Config'
 import Assinatura from './pages/Assinatura'
+import Admin from './pages/Admin'
 import Landing from './pages/Landing'
 import { Privacidade, Termos } from './pages/Termos'
 import { AceitarTermos, Convite, CriarEmpresa, conviteGuardado } from './pages/Onboarding'
 
 export default function App() {
-  const { session, carregando, ehDono, recuperando, empresa, termosOk, modulo } = useAuth()
+  const { session, carregando, ehDono, recuperando, empresa, termosOk, modulo, adminPlataforma } = useAuth()
   const { pathname } = useLocation()
 
   // Páginas públicas
@@ -60,6 +61,7 @@ export default function App() {
         {ehDono && modulo('financas') && <Route path="financas" element={<Financas />} />}
         {ehDono && <Route path="config" element={<Config />} />}
         <Route path="assinatura" element={<Assinatura />} />
+        {adminPlataforma && <Route path="admin" element={<Admin />} />}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

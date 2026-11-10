@@ -114,7 +114,8 @@ export default function Assinatura() {
             {a.assinada && atual && <div className="flex justify-between"><dt className="text-muted">Plano</dt><dd className="font-medium">{atual.nome} · {brl(atual.preco)}/mês</dd></div>}
             {a.pago_ate && <div className="flex justify-between"><dt className="text-muted">{a.situacao === 'cancelada' ? 'Acesso até' : 'Pago até'}</dt><dd className="font-medium">{dataBR(a.pago_ate)}</dd></div>}
             {a.cobranca_vencimento && <div className="flex justify-between"><dt className="text-muted">Próxima cobrança vence</dt><dd className="font-medium">{dataBR(a.cobranca_vencimento)}</dd></div>}
-            {a.situacao === 'bloqueada' && <p className="rounded-box bg-bad/10 p-2.5 text-bad">Sua conta está em <b>só leitura</b>: você vê tudo, mas não lança nada novo. Assine ou pague a cobrança em aberto para liberar na hora.</p>}
+            {a.bloqueio_admin && <p className="rounded-box bg-bad/10 p-2.5 text-bad">Sua conta foi <b>suspensa</b> pela equipe do Apura. Fale com a gente em contato@apuragestao.com.br.</p>}
+            {a.situacao === 'bloqueada' && !a.bloqueio_admin && <p className="rounded-box bg-bad/10 p-2.5 text-bad">Sua conta está em <b>só leitura</b>: você vê tudo, mas não lança nada novo. Assine ou pague a cobrança em aberto para liberar na hora.</p>}
             {a.situacao === 'atrasada' && <p className="rounded-box bg-warn/10 p-2.5 text-warn">A cobrança venceu. Pague para não ficar em modo só leitura.</p>}
           </dl>
           {ehDono && a.situacao !== 'cortesia' && (a.cobranca_url || a.situacao === 'atrasada' || (a.situacao === 'bloqueada' && a.assinada)) && (

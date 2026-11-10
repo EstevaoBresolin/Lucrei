@@ -17,6 +17,8 @@ export type Assinatura = {
   plano: string; plano_nome: string | null; preco: number | null; limite_vendas: number | null
   teste_ate: string | null; dias_teste: number; pago_ate: string | null; assinada: boolean
   cobranca_url: string | null; cobranca_vencimento: string | null; documento: string | null; vendas_mes: number
+  /** Bloqueada pelo administrador do Apura (não é falta de pagamento) */
+  bloqueio_admin?: boolean
 }
 
 /** Versão dos termos de uso e da política de privacidade. Mudou o texto? Aumente aqui: todos aceitam de novo. */
@@ -43,11 +45,13 @@ type Ctx = {
   trocarEmpresa: (id: string) => Promise<void>
   /** true quando o usuário chegou pelo link de "esqueci minha senha" e precisa definir uma nova. */
   recuperando: boolean; fimRecuperacao: () => void
+  /** Administrador do Apura: vê o painel com todas as empresas */
+  adminPlataforma: boolean
 }
 const AuthCtx = createContext<Ctx>({
   session: null, carregando: true, nome: '', empresas: [], empresa: null, papel: null, ehDono: false, isAdmin: false, podeEditar: false,
   assinatura: null, bloqueada: false, recarregarAssinatura: async () => {},
-  modulo: () => false, termosOk: false, recarregar: async () => {}, trocarEmpresa: async () => {}, recuperando: false, fimRecuperacao: () => {},
+  modulo: () => false, termosOk: false, recarregar: async () => {}, trocarEmpresa: async () => {}, recuperando: false, fimRecuperacao: () => {}, adminPlataforma: false,
 })
 
 /** Endereço público do sistema, usado nos links enviados por e-mail e nos convites. */
@@ -61,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [atual, setAtual] = useState<string | null>(null)
   const [termos, setTermos] = useState<string | null>(null)
   const [assinatura, setAssinatura] = useState<Assinatura | null>(null)
+  const [adminPlataforma, setAdminPlataforma] = useState(false)
   const [recuperando, setRecuperando] = useState(() => /type=recovery/.test(window.location.hash))
 
   useEffect(() => {
@@ -75,10 +80,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const userId = session?.user.id ?? null
   const carregar = useCallback(async () => {
     if (!userId) return
-    const [u, m] = await Promise.all([
+    const [u, m, adm] = await Promise.all([
       supabase.from('usuario').select('nome, empresa_atual, termos_versao').eq('id', userId).maybeSingle(),
       supabase.from('membro').select('papel, empresa:empresa_id(id, nome, tipo_negocio, modulos, imposto_perc, email_avisos, status, plano)').eq('user_id', userId),
+      supabase.rpc('sou_admin_plataforma'),
     ])
+    setAdminPlataforma(adm.data === true)
     const lista = ((m.data ?? []) as unknown as Vinculo[]).filter((v) => v.empresa).sort((a, b) => a.empresa.nome.localeCompare(b.empresa.nome))
     setNome(u.data?.nome ?? '')
     setTermos(u.data?.termos_versao ?? null)
@@ -128,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session, carregando, nome, empresas, empresa, papel,
       ehDono: papel === 'dono', isAdmin: papel === 'dono' && !bloqueada, podeEditar: (papel === 'dono' || papel === 'operador') && !bloqueada,
       assinatura, bloqueada, recarregarAssinatura,
-      modulo, termosOk: termos === TERMOS_VERSAO, recarregar: carregar, trocarEmpresa, recuperando, fimRecuperacao,
+      modulo, termosOk: termos === TERMOS_VERSAO, recarregar: carregar, trocarEmpresa, recuperando, fimRecuperacao, adminPlataforma,
     }}>
       {children}
     </AuthCtx.Provider>

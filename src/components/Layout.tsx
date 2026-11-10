@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, ShoppingCart, Boxes, Package, Hammer, Truck, Settings, LogOut, Plus, Wallet, Users, MoreHorizontal, Layers, UserCircle, Landmark, CreditCard } from 'lucide-react'
+import { LayoutDashboard, ShoppingCart, Boxes, Package, Hammer, Truck, Settings, LogOut, Plus, Wallet, Users, MoreHorizontal, Layers, UserCircle, Landmark, CreditCard, ShieldCheck } from 'lucide-react'
 import MinhaConta from './MinhaConta'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
@@ -7,7 +7,7 @@ import { useAuth, type Modulo } from '../lib/auth'
 import EmpresaSeletor from './EmpresaSeletor'
 import FaixaAssinatura from './FaixaAssinatura'
 
-type Item = { to: string; label: string; icon: typeof Boxes; end?: boolean; admin?: boolean; modulo?: Modulo | Modulo[] }
+type Item = { to: string; label: string; icon: typeof Boxes; end?: boolean; admin?: boolean; plataforma?: boolean; modulo?: Modulo | Modulo[] }
 const nav: Item[] = [
   { to: '/', label: 'Painel', icon: LayoutDashboard, end: true },
   { to: '/vendas', label: 'Vendas', icon: ShoppingCart },
@@ -21,14 +21,15 @@ const nav: Item[] = [
   { to: '/financeiro', label: 'Despesas', icon: Wallet, admin: true, modulo: 'financas' },
   { to: '/config', label: 'Configurações', icon: Settings, admin: true },
   { to: '/assinatura', label: 'Assinatura', icon: CreditCard, admin: true },
+  { to: '/admin', label: 'Admin', icon: ShieldCheck, plataforma: true },
 ]
 
 export default function Layout() {
-  const { nome, ehDono, podeEditar, modulo, papel, bloqueada, assinatura } = useAuth()
+  const { nome, ehDono, podeEditar, modulo, papel, bloqueada, assinatura, adminPlataforma } = useAuth()
   const navigate = useNavigate()
   const [mais, setMais] = useState(false)
   const [conta, setConta] = useState(false)
-  const itens = nav.filter((n) => (!n.admin || ehDono) && !(n.to === '/assinatura' && assinatura?.situacao === 'cortesia') && (!n.modulo || [n.modulo].flat().some(modulo)))
+  const itens = nav.filter((n) => (!n.admin || ehDono) && (!n.plataforma || adminPlataforma) && !(n.to === '/assinatura' && assinatura?.situacao === 'cortesia') && (!n.modulo || [n.modulo].flat().some(modulo)))
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-[232px_1fr]">

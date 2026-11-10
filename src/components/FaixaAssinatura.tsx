@@ -29,7 +29,10 @@ export default function FaixaAssinatura() {
 
   let tom = 'bg-led/10 text-ink border-led/30', msg: React.ReactNode = null, botao: React.ReactNode = null
 
-  if (a.situacao === 'bloqueada') {
+  if (a.bloqueio_admin) {
+    tom = 'bg-bad/10 text-bad border-bad/30'
+    msg = <><b>Conta suspensa.</b> Seus dados estão guardados e você vê tudo, mas não lança nada novo. Fale com a gente em contato@apuragestao.com.br.</>
+  } else if (a.situacao === 'bloqueada') {
     tom = 'bg-bad/10 text-bad border-bad/30'
     msg = <><b>Modo só leitura.</b> {a.assinada ? 'A assinatura não foi paga.' : 'Seu teste grátis acabou.'} Seus dados estão guardados: você vê tudo, mas não lança nada novo.</>
     botao = acao(a.assinada ? 'Pagar agora' : 'Assinar e liberar')
