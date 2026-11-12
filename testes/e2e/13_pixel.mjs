@@ -49,7 +49,9 @@ ok(!(await eventos(p3)).includes('track:InitiateCheckout'), 'Sem CPF (erro) não
 const gravados = []
 await p3.exposeFunction('__grava', (x) => gravados.push(x))
 await p3.evaluate(() => { const orig = window.fbq; window.fbq = function (...a) { window.__grava(JSON.stringify(a)); return orig.apply(this, a) } })
-await p3.getByLabel(/CPF ou CNPJ/).fill('52998224725'); await p3.getByRole('button', { name: /Assinar/ }).first().click(); await espera(3000)
+await p3.getByLabel(/CPF ou CNPJ/).fill('52998224725'); await p3.getByRole('button', { name: /Assinar/ }).first().click()
+for (let i = 0; i < 30 && !gravados.some((x) => x.includes('InitiateCheckout')); i++) await espera(500) // a função de cobrança demora mais logo depois de subir
+await espera(800)
 const ck = JSON.stringify(gravados.map((x) => JSON.parse(x)).filter((a) => a[1] === 'InitiateCheckout').map((a) => [a[2], a[3]]))
 ok(/"currency":"BRL"/.test(ck) && /"value":\d/.test(ck) && JSON.parse(ck).length === 1, 'Assinar dispara InitiateCheckout uma vez, com o valor do plano, antes de ir para o Asaas', ck)
 secao('Pagamento confirmado (Subscribe)')
@@ -59,9 +61,11 @@ await p3.goto(APP + '/'); await espera(2000)
 ok(!(await eventos(p3)).includes('track:Subscribe'), 'Antes de pagar, não há Subscribe')
 SQL(`update empresa set status='ativa', pago_ate=current_date + 30 where id='${empPx}'`) // o que o aviso de pagamento do Asaas faz
 await p3.goto(APP + '/'); await espera(2500)
+const comp = await p3.evaluate(() => JSON.stringify((window.fbq?.queue ?? []).filter((a) => a[1] === 'Purchase').map((a) => [a[2], a[3]])))
+ok(JSON.parse(comp).length === 1 && /"value":99/.test(comp) && /"currency":"BRL"/.test(comp) && /compra:/.test(comp), 'Pagamento também dispara Purchase com valor e moeda', comp)
 const sub = await p3.evaluate(() => JSON.stringify((window.fbq?.queue ?? []).filter((a) => a[1] === 'Subscribe').map((a) => [a[2], a[3]])))
 ok(JSON.parse(sub).length === 1 && /"value":99/.test(sub) && /assinatura:/.test(sub), 'Voltando ao sistema já pago, dispara Subscribe com o valor do plano', sub)
 await p3.reload(); await espera(2500)
-ok(!(await eventos(p3)).includes('track:Subscribe'), 'Recarregar não repete o Subscribe')
+ok(!(await eventos(p3)).some((e) => e === 'track:Subscribe' || e === 'track:Purchase'), 'Recarregar não repete Subscribe nem Purchase')
 await b3.close(); await b.close()
 salvar('/tmp/claude-0/e2e/r13.json')

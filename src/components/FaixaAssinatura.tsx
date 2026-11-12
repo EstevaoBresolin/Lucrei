@@ -18,6 +18,8 @@ export default function FaixaAssinatura() {
     const chave = `apura_subscribe_${empresa.id}`
     try { if (localStorage.getItem(chave)) return } catch { /* sem armazenamento: o eventID fixo evita duplicar */ }
     rastrear('Subscribe', { value: Number(a.preco ?? 0), currency: 'BRL', predicted_ltv: Number(a.preco ?? 0) * 12, content_name: a.plano_nome ?? a.plano }, `assinatura:${empresa.id}`)
+    // Purchase: o evento de compra padrão do Meta, o mais usado para otimizar campanhas
+    rastrear('Purchase', { value: Number(a.preco ?? 0), currency: 'BRL', content_name: a.plano_nome ?? a.plano, content_ids: [a.plano], content_type: 'product', num_items: 1 }, `compra:${empresa.id}`)
     try { localStorage.setItem(chave, '1') } catch { /* ignora */ }
   }, [pago, empresa?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
