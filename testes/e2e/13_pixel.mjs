@@ -7,7 +7,7 @@ await page.route(/connect\.facebook\.net/, (r) => r.abort())
 
 secao('PageView e cadastro')
 await page.goto(APP + '/'); await espera(1200)
-ok((await eventos(page)).includes('init:1155281290345367') && (await eventos(page)).includes('track:PageView'), 'Pixel inicia e manda PageView na landing', (await eventos(page)).join(', '))
+ok((await eventos(page)).includes('init:1844854430090329') && (await eventos(page)).includes('track:PageView'), 'Pixel inicia e manda PageView na landing', (await eventos(page)).join(', '))
 const EM = `pixel${Date.now()}@teste.com`
 await page.goto(APP + '/cadastro'); await espera(800)
 await page.getByLabel('Seu nome').fill('Pixel Teste'); await page.getByLabel('E-mail').fill(EM); await page.getByLabel('Senha').fill('Senha@123')
